@@ -191,10 +191,28 @@ def get_stats():
         """, (today_start,))
         leads_today = cur.fetchone()["cnt"]
 
+        # Total emails
+        cur.execute("SELECT COUNT(*) as cnt FROM emails")
+        total_emails = cur.fetchone()["cnt"]
+
+        # Tag counts (all time)
+        import json as _json
+        cur.execute("SELECT tags FROM emails WHERE tags != '[]'")
+        from collections import Counter
+        tag_counts = Counter()
+        for row in cur.fetchall():
+            try:
+                for t in _json.loads(row["tags"]):
+                    tag_counts[t] += 1
+            except Exception:
+                pass
+
     return {
         "per_account": per_account,
         "clients_today": clients_today,
         "job_leads_today": leads_today,
+        "total_emails": total_emails,
+        "tag_counts": dict(tag_counts),
     }
 
 
