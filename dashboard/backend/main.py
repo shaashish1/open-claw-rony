@@ -207,7 +207,11 @@ def get_stats(user: str = Depends(require_auth)):
 # ── Serve Frontend ────────────────────────────────────────────────────────────
 
 # In Docker: /app/frontend | Locally: ../frontend
-_base = Path("/app") if Path("/app").exists() else Path(__file__).parent.parent
+_base = Path(__file__).parent.parent
+if Path("/app/frontend").exists():
+    _base = Path("/app")
+elif Path("/opt/itgyani-dashboard/frontend").exists():
+    _base = Path("/opt/itgyani-dashboard")
 FRONTEND_DIR = _base / "frontend"
 
 if FRONTEND_DIR.exists():
