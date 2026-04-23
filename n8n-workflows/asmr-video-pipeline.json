@@ -1,0 +1,243 @@
+{
+  "name": "ASMR Video Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 2 * * *"
+            }
+          ]
+        }
+      },
+      "id": "node-schedule-asmr",
+      "name": "Schedule: Daily 2AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pick a random ASMR topic\nconst topics = [\n  'gentle rain on a rooftop at night',\n  'forest meditation with birdsong and rustling leaves',\n  'ocean waves crashing softly on a sandy beach',\n  'crackling fireplace with distant wind',\n  'library ambience with soft page turning',\n  'Japanese zen garden with bamboo water feature',\n  'coffee shop background with soft chatter',\n  'thunderstorm from inside a cozy cabin'\n];\n\nconst today = new Date();\nconst index = today.getDate() % topics.length;\nconst topic = topics[index];\n\nreturn [{ json: { topic, date: today.toISOString().split('T')[0] } }];"
+      },
+      "id": "node-pick-topic-asmr",
+      "name": "Pick ASMR Topic",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [420, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ai-sambhatt3210ai899661109114.services.ai.azure.com/anthropic/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "httpHeaders": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        },
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-sonnet-4-6\",\n  \"max_tokens\": 1024,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Generate a relaxing 60-second ASMR script with ambient sound description and soft narration. Topic: {{ $json.topic }}. Format the response as JSON with fields: title (YouTube-ready, SEO optimized), script (the narration text), soundscape (ambient sound instructions), description (YouTube description 150 words), tags (array of 10 relevant tags). Keep narration gentle, slow, and soothing.\"\n    }\n  ]\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "node-generate-script-asmr",
+      "name": "Generate ASMR Script (Claude)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [640, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "azure-foundry-cred",
+          "name": "Azure Foundry API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse Claude response and extract script content\nconst response = $input.item.json;\nconst content = response.content?.[0]?.text || '{}';\n\nlet parsed;\ntry {\n  // Extract JSON from Claude's response (may be wrapped in markdown)\n  const jsonMatch = content.match(/```json\\n([\\s\\S]*?)\\n```/) || content.match(/({[\\s\\S]*})/);\n  parsed = jsonMatch ? JSON.parse(jsonMatch[1] || jsonMatch[0]) : JSON.parse(content);\n} catch(e) {\n  parsed = {\n    title: 'Relaxing ASMR - ' + new Date().toLocaleDateString(),\n    script: content,\n    description: 'Relaxing ASMR video for sleep and meditation.',\n    tags: ['asmr', 'relaxing', 'sleep', 'meditation', 'ambient']\n  };\n}\n\nreturn [{ json: { ...parsed, topic: $('Pick ASMR Topic').item.json.topic, date: $('Pick ASMR Topic').item.json.date } }];"
+      },
+      "id": "node-parse-script-asmr",
+      "name": "Parse Script Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [860, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ai-sambhatt3210ai899661109114.cognitiveservices.azure.com/openai/deployments/gpt-4o-mini-tts/audio/speech?api-version=2025-03-01-preview",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o-mini-tts\",\n  \"input\": \"{{ $json.script }}\",\n  \"voice\": \"shimmer\",\n  \"response_format\": \"mp3\",\n  \"speed\": 0.85\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "node-tts-asmr",
+      "name": "Generate TTS Audio (shimmer)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1080, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "azure-openai-cred",
+          "name": "Azure OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare metadata for video creation\n// Audio binary is available as binary data from previous node\nconst scriptData = $('Parse Script Response').item.json;\n\n// Build FFmpeg command for reference (user runs this or integrates with server)\nconst ffmpegCmd = `ffmpeg -loop 1 -i background.jpg -i audio.mp3 -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -shortest output.mp4`;\n\nconst metadata = {\n  title: scriptData.title,\n  description: scriptData.description,\n  tags: Array.isArray(scriptData.tags) ? scriptData.tags : ['asmr', 'relaxing', 'meditation'],\n  categoryId: '22',  // People & Blogs — change to 26 (Howto) if preferred\n  privacyStatus: 'public',\n  ffmpegCommand: ffmpegCmd,\n  audioReady: true,\n  note: 'Audio binary is in binary data. Use FFmpeg node or server script to combine with background image.'\n};\n\nreturn [{ json: metadata }];"
+      },
+      "id": "node-prepare-metadata-asmr",
+      "name": "Prepare Video Metadata",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1300, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status",
+        "authentication": "oAuth2",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Upload-Content-Type",
+              "value": "video/mp4"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"snippet\": {\n    \"title\": \"{{ $json.title }}\",\n    \"description\": \"{{ $json.description }}\\n\\n#ASMR #Relaxing #Sleep #Meditation\\n\\nSubscribe for daily relaxation videos!\",\n    \"tags\": {{ JSON.stringify($json.tags) }},\n    \"categoryId\": \"{{ $json.categoryId }}\"\n  },\n  \"status\": {\n    \"privacyStatus\": \"{{ $json.privacyStatus }}\",\n    \"selfDeclaredMadeForKids\": false\n  }\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "node-youtube-upload-asmr",
+      "name": "YouTube Upload (Placeholder)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1520, 300],
+      "credentials": {
+        "oAuth2Api": {
+          "id": "youtube-oauth-cred",
+          "name": "YouTube OAuth2"
+        }
+      },
+      "notes": "PLACEHOLDER: Configure YouTube OAuth2 credential. Video file must be sent as binary body for actual upload. This node sends metadata only. For full upload, use resumable upload pattern."
+    },
+    {
+      "parameters": {
+        "chatId": "427179140",
+        "text": "=✅ ASMR Video Pipeline Complete!\n\n📹 Title: {{ $('Parse Script Response').item.json.title }}\n🎙️ Topic: {{ $('Pick ASMR Topic').item.json.topic }}\n📅 Date: {{ $('Pick ASMR Topic').item.json.date }}\n\n⚠️ Note: Configure YouTube OAuth2 for auto-upload.\n\n#ASMR #AutomatedContent #ITGYANI",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "node-telegram-asmr",
+      "name": "Telegram Notification",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1740, 300],
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-bot-cred",
+          "name": "Telegram Bot"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule: Daily 2AM": {
+      "main": [
+        [
+          { "node": "Pick ASMR Topic", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Pick ASMR Topic": {
+      "main": [
+        [
+          { "node": "Generate ASMR Script (Claude)", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Generate ASMR Script (Claude)": {
+      "main": [
+        [
+          { "node": "Parse Script Response", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Parse Script Response": {
+      "main": [
+        [
+          { "node": "Generate TTS Audio (shimmer)", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Generate TTS Audio (shimmer)": {
+      "main": [
+        [
+          { "node": "Prepare Video Metadata", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Prepare Video Metadata": {
+      "main": [
+        [
+          { "node": "YouTube Upload (Placeholder)", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "YouTube Upload (Placeholder)": {
+      "main": [
+        [
+          { "node": "Telegram Notification", "type": "main", "index": 0 }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "tags": ["youtube", "asmr", "automation", "itgyani"],
+  "triggerCount": 1,
+  "updatedAt": "2026-04-23T00:00:00.000Z",
+  "versionId": "1",
+  "description": "## ASMR Video Pipeline - Setup Guide\n\n### What this workflow does:\nGenerates a daily ASMR video with AI script + TTS audio, uploads to YouTube, and notifies via Telegram.\n\n### Credentials to configure in n8n:\n1. **Azure Foundry API** (HTTP Header Auth)\n   - Header Name: `x-api-key`\n   - Header Value: Your AZURE_FOUNDRY_KEY\n\n2. **Azure OpenAI API** (HTTP Header Auth)\n   - Header Name: `api-key`\n   - Header Value: Your AZURE_SPEECH_KEY (or OpenAI key for TTS)\n\n3. **YouTube OAuth2**\n   - Go to Google Cloud Console → Create OAuth2 credentials\n   - Scope: https://www.googleapis.com/auth/youtube.upload\n   - Add to n8n as OAuth2 credential named 'YouTube OAuth2'\n\n4. **Telegram Bot**\n   - Create bot via @BotFather\n   - Add token to n8n as Telegram credential named 'Telegram Bot'\n\n### Video Generation Note:\nThis workflow generates the audio. To create the actual video file:\n- Option A: Use a server-side FFmpeg script combining background.jpg + audio.mp3\n- Option B: Add an FFmpeg n8n community node\n- Option C: Use a video generation API (Runway, Pictory, etc.)\n\n### Schedule: Runs daily at 2:00 AM UTC"
+}

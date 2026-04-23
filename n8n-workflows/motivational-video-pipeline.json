@@ -1,0 +1,231 @@
+{
+  "name": "Motivational Video Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 6 * * *"
+            }
+          ]
+        }
+      },
+      "id": "node-schedule-motiv",
+      "name": "Schedule: Daily 6AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Select motivational theme by day of week\nconst themes = [\n  { theme: 'overcoming failure and resilience', audience: 'entrepreneurs and go-getters' },\n  { theme: 'morning mindset for success', audience: 'professionals and students' },\n  { theme: 'gratitude and abundance mindset', audience: 'families and individuals' },\n  { theme: 'discipline beats motivation every time', audience: 'athletes and high-performers' },\n  { theme: 'small steps lead to big dreams', audience: 'beginners and dreamers' },\n  { theme: 'weekend warrior: recharge and refocus', audience: 'busy parents and workers' },\n  { theme: 'Sunday reset: plan your best week', audience: 'goal-setters and planners' }\n];\n\nconst day = new Date().getDay(); // 0=Sun, 6=Sat\nconst selected = themes[day];\n\nreturn [{ json: { ...selected, date: new Date().toISOString().split('T')[0], dayIndex: day } }];"
+      },
+      "id": "node-pick-theme-motiv",
+      "name": "Pick Motivational Theme",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [420, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ai-sambhatt3210ai899661109114.services.ai.azure.com/anthropic/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "httpHeaders": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-sonnet-4-6\",\n  \"max_tokens\": 1500,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Create a powerful 60-90 second motivational video script for YouTube. Theme: '{{ $json.theme }}'. Target audience: {{ $json.audience }}.\\n\\nThe script must include:\\n1. A powerful opening hook (5-10 seconds)\\n2. An inspiring real-world story or analogy (30-40 seconds)\\n3. A memorable quote from a famous person\\n4. A strong call-to-action closing (10-15 seconds)\\n\\nRespond ONLY with valid JSON (no markdown) containing these fields:\\n- title: SEO-optimized YouTube title (include year 2026, use power words)\\n- script: full narration script (spoken words only, 60-90 seconds at normal pace)\\n- quote: the featured quote with attribution\\n- description: YouTube description (200 words, includes call to subscribe, 3 relevant links as placeholders)\\n- tags: array of 12 trending tags\\n- thumbnail_text: bold text overlay for thumbnail (max 6 words)\"\n    }\n  ]\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "node-generate-script-motiv",
+      "name": "Generate Motivational Script (Claude)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [640, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "azure-foundry-cred",
+          "name": "Azure Foundry API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse Claude's response\nconst response = $input.item.json;\nconst rawText = response.content?.[0]?.text || '{}';\n\nlet parsed;\ntry {\n  // Try direct JSON parse first\n  parsed = JSON.parse(rawText);\n} catch(e) {\n  // Try extracting JSON from markdown code blocks\n  const match = rawText.match(/```(?:json)?\\n?([\\s\\S]*?)\\n?```/);\n  if (match) {\n    try { parsed = JSON.parse(match[1]); } catch(e2) { parsed = {}; }\n  } else {\n    // Last resort: extract what we can\n    parsed = {\n      title: 'Motivational Video ' + new Date().toLocaleDateString(),\n      script: rawText.slice(0, 1000),\n      description: 'Daily motivation for your best life.',\n      tags: ['motivation', 'success', 'mindset', 'inspiration', 'selfimprovement']\n    };\n  }\n}\n\nconst theme = $('Pick Motivational Theme').item.json;\nreturn [{ json: { ...parsed, theme: theme.theme, date: theme.date } }];"
+      },
+      "id": "node-parse-script-motiv",
+      "name": "Parse Script & Metadata",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [860, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ai-sambhatt3210ai899661109114.cognitiveservices.azure.com/openai/deployments/gpt-4o-mini-tts/audio/speech?api-version=2025-03-01-preview",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o-mini-tts\",\n  \"input\": \"{{ $json.script }}\",\n  \"voice\": \"onyx\",\n  \"response_format\": \"mp3\",\n  \"speed\": 1.0\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "node-tts-motiv",
+      "name": "Generate Voiceover (onyx)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1080, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "azure-openai-cred",
+          "name": "Azure OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build final video metadata for YouTube upload\nconst scriptData = $('Parse Script & Metadata').item.json;\n\nconst tagsArray = Array.isArray(scriptData.tags)\n  ? scriptData.tags\n  : ['motivation', 'success', 'mindset', 'inspiration', 'selfimprovement', 'growthmindset', 'positivity'];\n\nconst description = `${scriptData.description || ''}\n\n\"${scriptData.quote || 'Success is not final, failure is not fatal.'}\"\n\n📌 Subscribe for daily motivation: https://youtube.com/@JoyfulFamilyMoments\n👍 Like if this video inspired you!\n🔔 Hit the bell for daily uploads!\n\n${tagsArray.map(t => '#' + t.replace(/\\s/g, '')).join(' ')}`;\n\nreturn [{\n  json: {\n    title: scriptData.title,\n    description: description,\n    tags: tagsArray,\n    categoryId: '26',\n    privacyStatus: 'public',\n    thumbnail_text: scriptData.thumbnail_text || 'YOU CAN DO IT',\n    audioReady: true,\n    ffmpegNote: 'Combine motivational background video + audio.mp3 using FFmpeg'\n  }\n}];"
+      },
+      "id": "node-build-metadata-motiv",
+      "name": "Build Video Metadata",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1300, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status",
+        "authentication": "oAuth2",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"snippet\": {\n    \"title\": \"{{ $json.title }}\",\n    \"description\": \"{{ $json.description }}\",\n    \"tags\": {{ JSON.stringify($json.tags) }},\n    \"categoryId\": \"{{ $json.categoryId }}\"\n  },\n  \"status\": {\n    \"privacyStatus\": \"{{ $json.privacyStatus }}\",\n    \"selfDeclaredMadeForKids\": false\n  }\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "node-youtube-upload-motiv",
+      "name": "YouTube Upload (Placeholder)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1520, 300],
+      "credentials": {
+        "oAuth2Api": {
+          "id": "youtube-oauth-cred",
+          "name": "YouTube OAuth2"
+        }
+      },
+      "notes": "PLACEHOLDER: Requires YouTube OAuth2 credential and actual video binary. Configure OAuth2 and attach MP4 file before activating."
+    },
+    {
+      "parameters": {
+        "chatId": "427179140",
+        "text": "=✅ Motivational Video Pipeline Complete!\n\n📹 Title: {{ $('Parse Script & Metadata').item.json.title }}\n🎯 Theme: {{ $('Pick Motivational Theme').item.json.theme }}\n📅 Date: {{ $('Pick Motivational Theme').item.json.date }}\n💬 Quote: {{ $('Parse Script & Metadata').item.json.quote }}\n\n🚀 ITGYANI Automation | @JoyfulFamilyMoments",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "node-telegram-motiv",
+      "name": "Telegram Notification",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1740, 300],
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-bot-cred",
+          "name": "Telegram Bot"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule: Daily 6AM": {
+      "main": [
+        [
+          { "node": "Pick Motivational Theme", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Pick Motivational Theme": {
+      "main": [
+        [
+          { "node": "Generate Motivational Script (Claude)", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Generate Motivational Script (Claude)": {
+      "main": [
+        [
+          { "node": "Parse Script & Metadata", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Parse Script & Metadata": {
+      "main": [
+        [
+          { "node": "Generate Voiceover (onyx)", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Generate Voiceover (onyx)": {
+      "main": [
+        [
+          { "node": "Build Video Metadata", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Build Video Metadata": {
+      "main": [
+        [
+          { "node": "YouTube Upload (Placeholder)", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "YouTube Upload (Placeholder)": {
+      "main": [
+        [
+          { "node": "Telegram Notification", "type": "main", "index": 0 }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "tags": ["youtube", "motivational", "automation", "itgyani"],
+  "triggerCount": 1,
+  "updatedAt": "2026-04-23T00:00:00.000Z",
+  "versionId": "1",
+  "description": "## Motivational Video Pipeline - Setup Guide\n\n### What this workflow does:\nGenerates daily motivational video scripts with AI, converts to voiceover using deep 'onyx' voice, uploads to YouTube (@JoyfulFamilyMoments), and notifies via Telegram.\n\n### Credentials to configure in n8n:\n1. **Azure Foundry API** (HTTP Header Auth)\n   - Header Name: `x-api-key`\n   - Header Value: Your AZURE_FOUNDRY_KEY\n\n2. **Azure OpenAI API** (HTTP Header Auth)\n   - Header Name: `api-key`\n   - Header Value: Your Azure OpenAI key\n\n3. **YouTube OAuth2**\n   - Scope: https://www.googleapis.com/auth/youtube.upload\n   - Channel: @JoyfulFamilyMoments\n\n4. **Telegram Bot**\n   - Token from @BotFather\n\n### Theme Rotation:\n- Sunday: Sunday reset planning\n- Monday: Overcoming failure\n- Tuesday: Morning mindset\n- Wednesday: Gratitude mindset\n- Thursday: Discipline beats motivation\n- Friday: Small steps to big dreams\n- Saturday: Weekend warrior\n\n### Schedule: Runs daily at 6:00 AM UTC"
+}

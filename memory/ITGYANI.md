@@ -81,3 +81,22 @@ See AGENT_ROSTER.md
 - ashish.sharma14@gmail.com: App password already stored
 - ashish@itgyani.com: App password already stored
 - VPS accounts: SMTP via 194.233.64.74:587
+
+## YouTube Channels (2026-04-23)
+| Channel | Handle | Subscribers | Content |
+|---|---|---|---|
+| AnikaMiniBlox | @AnikaMiniBlox | 14 | Kids/gaming |
+| Healorithm | @Healorithm | 19 | Health |
+| Family Fun Adventures | @JoyfulFamilyMoments | 99 | Family |
+| SehatSutra - Hindi | @SehatSutraHindi | 1 | Health Hindi |
+| The Employee Factory | @theemployeefactory | 167 | HR/Recruitment |
+| CryptoGyani Official | @CryptoGyaniOfficial | 52 | Crypto |
+| AI ASMR 1Min | (AI ASMR) | 11 | ASMR |
+| SPH Nithyananda - Hindi | - | 0 | Spiritual |
+
+## n8n YouTube Automation Workflows Needed
+- ASMR video auto-production pipeline
+- Motivational video pipeline
+- Health video pipeline (Healorithm + SehatSutra)
+- Blog-to-video / blog auto-publish pipeline
+- All workflows: generate script → TTS → visuals → upload to YouTube
