@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - dashboard_data:/app/data
+    environment:
+      # Gmail accounts
+      GMAIL_PERSONAL_EMAIL: ashish.sharma14@gmail.com
+      GMAIL_PERSONAL_PASS: "eysg infz zxja srtl"
+      GMAIL_ITGYANI_EMAIL: ashish@itgyani.com
+      GMAIL_ITGYANI_PASS: "ozdi cwfy hncm nkzl"
+      # VPS accounts (all on 194.233.64.74)
+      VPS_CRYPTOGYANI_EMAIL: ashish@cryptogyani.com
+      VPS_CRYPTOGYANI_PASS: "Itgyani@123"
+      VPS_CRYPTOGYANI_INFO_EMAIL: info@cryptogyani.com
+      VPS_CRYPTOGYANI_INFO_PASS: "BlockTrade5$"
+      VPS_CRYPTOGYANI_TRADING_EMAIL: trading@cryptogyani.com
+      VPS_CRYPTOGYANI_TRADING_PASS: "Itgyani@123"
+      VPS_TEF_EMAIL: ashish@theemployeefactory.com
+      VPS_TEF_PASS: "BlockTrade5$"
+      VPS_TEF_SUPPORT_EMAIL: support@theemployeefactory.com
+      VPS_TEF_SUPPORT_PASS: "BlockTrade5$"
+      VPS_TECHNOFLAIRLAB_EMAIL: ashish@technoflairlab.com
+      VPS_TECHNOFLAIRLAB_PASS: "BlockTrade5$"
+      VPS_KHARADI_EMAIL: info@kharadionline.com
+      VPS_KHARADI_PASS: "Itgyani@123"
+      # Telegram (add your bot token here)
+      TELEGRAM_BOT_TOKEN: ""
+    restart: unless-stopped
+
+volumes:
+  dashboard_data:

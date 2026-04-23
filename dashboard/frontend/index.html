@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ITGYANI Email Dashboard</title>
+  <style>
+    /* ── Reset & Base ──────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-0: #0d1117;
+      --bg-1: #161b22;
+      --bg-2: #1c2128;
+      --bg-3: #21262d;
+      --border: #30363d;
+      --text-1: #e6edf3;
+      --text-2: #8b949e;
+      --text-3: #6e7681;
+      --accent: #2f81f7;
+      --accent-hover: #388bfd;
+      --green: #3fb950;
+      --orange: #d29922;
+      --red: #f85149;
+      --purple: #a371f7;
+      --tag-client: #1f4068;
+      --tag-client-text: #58a6ff;
+      --tag-lead: #2d3748;
+      --tag-lead-text: #a371f7;
+      --tag-payment: #1a3a2a;
+      --tag-payment-text: #3fb950;
+      --tag-spam: #3a1f1f;
+      --tag-spam-text: #f85149;
+      --sidebar-w: 240px;
+      --reader-w: 420px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      background: var(--bg-0);
+      color: var(--text-1);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Top Bar ────────────────────────────────────────────────────── */
+    #topbar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 10px 20px;
+      background: var(--bg-1);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      min-height: 56px;
+    }
+
+    #topbar h1 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-1);
+      white-space: nowrap;
+    }
+
+    .stats-bar {
+      display: flex;
+      gap: 16px;
+      flex: 1;
+      font-size: 13px;
+      color: var(--text-2);
+    }
+
+    .stat-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 10px;
+    }
+
+    .stat-chip .num { font-weight: 700; color: var(--text-1); }
+
+    #sync-btn {
+      padding: 7px 16px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    #sync-btn:hover { background: var(--accent-hover); }
+    #sync-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .spin { animation: spin 1s linear infinite; display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Main Layout ────────────────────────────────────────────────── */
+    #app {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ────────────────────────────────────────────────────── */
+    #sidebar {
+      width: var(--sidebar-w);
+      background: var(--bg-1);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .sidebar-section {
+      padding: 12px 8px 4px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .account-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      border-radius: 6px;
+      margin: 1px 6px;
+      font-size: 13px;
+      color: var(--text-2);
+      transition: background 0.1s, color 0.1s;
+    }
+    .account-item:hover { background: var(--bg-2); color: var(--text-1); }
+    .account-item.active { background: var(--bg-3); color: var(--text-1); }
+
+    .account-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .account-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .unread-badge {
+      background: var(--accent);
+      color: #fff;
+      border-radius: 10px;
+      padding: 1px 7px;
+      font-size: 11px;
+      font-weight: 700;
+      min-width: 20px;
+      text-align: center;
+    }
+
+    /* ── Email List ─────────────────────────────────────────────────── */
+    #email-list-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border);
+      overflow: hidden;
+      min-width: 300px;
+    }
+
+    #filter-tabs {
+      display: flex;
+      gap: 2px;
+      padding: 10px 12px 0;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-1);
+      flex-shrink: 0;
+    }
+
+    .tab {
+      padding: 7px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-2);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color 0.1s, border-color 0.1s;
+      white-space: nowrap;
+    }
+    .tab:hover { color: var(--text-1); }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    #email-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .email-item {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    .email-item:hover { background: var(--bg-2); }
+    .email-item.active { background: var(--bg-3); }
+    .email-item.unread .email-subject { font-weight: 700; color: var(--text-1); }
+
+    .email-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 3px;
+      gap: 8px;
+    }
+
+    .email-from {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-1);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+
+    .email-date {
+      font-size: 11px;
+      color: var(--text-3);
+      white-space: nowrap;
+    }
+
+    .email-subject {
+      font-size: 13px;
+      color: var(--text-2);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      margin-bottom: 4px;
+    }
+
+    .email-snippet {
+      font-size: 12px;
+      color: var(--text-3);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .tag-row { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 5px; }
+
+    .tag {
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+    .tag-client   { background: var(--tag-client);  color: var(--tag-client-text); }
+    .tag-job-lead { background: var(--tag-lead);    color: var(--tag-lead-text); }
+    .tag-payment  { background: var(--tag-payment); color: var(--tag-payment-text); }
+    .tag-spam     { background: var(--tag-spam);    color: var(--tag-spam-text); }
+    .tag-default  { background: var(--bg-3);        color: var(--text-2); }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--text-3);
+      font-size: 14px;
+      gap: 8px;
+    }
+    .empty-state .icon { font-size: 40px; }
+
+    /* ── Email Reader ────────────────────────────────────────────────── */
+    #reader-panel {
+      width: var(--reader-w);
+      background: var(--bg-1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    #reader-header {
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    #reader-subject {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-1);
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+
+    .reader-meta { font-size: 12px; color: var(--text-2); margin-bottom: 4px; }
+    .reader-meta strong { color: var(--text-1); }
+
+    #reader-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+
+    #reader-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    #reader-body iframe {
+      width: 100%;
+      border: none;
+      background: #fff;
+      border-radius: 6px;
+    }
+
+    #reader-body .plain-text {
+      font-size: 14px;
+      color: var(--text-2);
+      line-height: 1.6;
+      white-space: pre-wrap;
+      font-family: inherit;
+    }
+
+    #reader-footer {
+      padding: 12px 20px;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    #draft-area {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    #draft-area.open { display: flex; }
+
+    #draft-textarea {
+      width: 100%;
+      height: 120px;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-1);
+      font-size: 13px;
+      padding: 10px;
+      resize: vertical;
+      font-family: inherit;
+    }
+    #draft-textarea:focus { outline: none; border-color: var(--accent); }
+
+    .btn {
+      padding: 7px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: background 0.15s;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-secondary { background: var(--bg-3); color: var(--text-1); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--bg-2); }
+
+    .draft-actions { display: flex; gap: 8px; }
+
+    #draft-status {
+      font-size: 12px;
+      color: var(--green);
+      display: none;
+    }
+
+    .reader-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--text-3);
+      font-size: 14px;
+      gap: 8px;
+    }
+
+    /* ── Scrollbar ──────────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--bg-3); border-radius: 3px; }
+
+    /* ── Toast ──────────────────────────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+      color: var(--text-1);
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      z-index: 1000;
+      display: none;
+      max-width: 320px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+  </style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div id="topbar">
+  <h1>📧 ITGYANI Mail</h1>
+  <div class="stats-bar" id="stats-bar">
+    <div class="stat-chip"><span>Unread</span><span class="num" id="stat-unread">—</span></div>
+    <div class="stat-chip"><span>🤝 Clients today</span><span class="num" id="stat-clients">—</span></div>
+    <div class="stat-chip"><span>💼 Leads today</span><span class="num" id="stat-leads">—</span></div>
+    <div class="stat-chip" id="sync-status-chip" style="display:none">
+      <span id="sync-status-text"></span>
+    </div>
+  </div>
+  <button id="sync-btn" onclick="triggerSync()">🔄 Sync All</button>
+</div>
+
+<!-- Main App -->
+<div id="app">
+
+  <!-- Sidebar -->
+  <div id="sidebar">
+    <div class="sidebar-section">Accounts</div>
+    <div id="account-list">
+      <div class="account-item active" data-account="" onclick="selectAccount('')">
+        <div class="account-icon">All</div>
+        <div class="account-label">All Accounts</div>
+        <div class="unread-badge" id="badge-all">0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Email List Panel -->
+  <div id="email-list-panel">
+    <div id="filter-tabs">
+      <div class="tab active" data-tab="" onclick="selectTab('')">All</div>
+      <div class="tab" data-tab="client" onclick="selectTab('client')">Clients</div>
+      <div class="tab" data-tab="job-lead" onclick="selectTab('job-lead')">Job Leads</div>
+      <div class="tab" data-tab="payment" onclick="selectTab('payment')">Payments</div>
+      <div class="tab" data-tab="unread" onclick="selectTab('unread')">Unread</div>
+    </div>
+    <div id="email-list">
+      <div class="empty-state"><div class="icon">📭</div><div>Loading emails…</div></div>
+    </div>
+  </div>
+
+  <!-- Reader Panel -->
+  <div id="reader-panel">
+    <div class="reader-empty" id="reader-empty">
+      <div style="font-size:40px">📄</div>
+      <div>Select an email to read</div>
+    </div>
+    <div id="reader-content" style="display:none;flex-direction:column;height:100%">
+      <div id="reader-header">
+        <div id="reader-subject"></div>
+        <div class="reader-meta"><strong>From:</strong> <span id="reader-from"></span></div>
+        <div class="reader-meta"><strong>To:</strong> <span id="reader-to"></span></div>
+        <div class="reader-meta"><strong>Date:</strong> <span id="reader-date"></span></div>
+        <div id="reader-tags"></div>
+      </div>
+      <div id="reader-body"></div>
+      <div id="reader-footer">
+        <div class="draft-actions">
+          <button class="btn btn-secondary" onclick="toggleDraft()">✏️ Draft Reply</button>
+          <div id="draft-status">✅ Draft saved!</div>
+        </div>
+        <div id="draft-area">
+          <textarea id="draft-textarea" placeholder="Type your reply here... (DRAFT ONLY — will never be sent)"></textarea>
+          <div class="draft-actions">
+            <button class="btn btn-primary" onclick="saveDraft()">💾 Save Draft</button>
+            <button class="btn btn-secondary" onclick="toggleDraft()">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+const state = {
+  accounts: [],
+  selectedAccount: '',
+  selectedTab: '',
+  selectedEmail: null,
+  emails: [],
+  page: 1,
+  syncing: false,
+};
+
+// ── API helpers ────────────────────────────────────────────────────────────
+async function api(path, opts = {}) {
+  const resp = await fetch('/api' + path, {
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    ...opts,
+  });
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${await resp.text()}`);
+  return resp.json();
+}
+
+// ── Toast ──────────────────────────────────────────────────────────────────
+function toast(msg, duration = 3000) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', duration);
+}
+
+// ── Tag rendering ──────────────────────────────────────────────────────────
+function tagClass(tag) {
+  const map = { client: 'tag-client', 'job-lead': 'tag-job-lead', payment: 'tag-payment', spam: 'tag-spam' };
+  return map[tag] || 'tag-default';
+}
+
+function renderTags(tags) {
+  return (tags || []).map(t =>
+    `<span class="tag ${tagClass(t)}">${t}</span>`
+  ).join('');
+}
+
+// ── Date formatting ────────────────────────────────────────────────────────
+function fmtDate(ts) {
+  if (!ts) return '';
+  const d = new Date(ts * 1000);
+  const now = new Date();
+  const today = now.toDateString();
+  if (d.toDateString() === today) {
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+  return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
+
+// ── Load accounts ──────────────────────────────────────────────────────────
+async function loadAccounts() {
+  try {
+    const accounts = await api('/accounts');
+    state.accounts = accounts;
+    renderSidebar(accounts);
+    updateStats();
+  } catch (e) {
+    console.error('Failed to load accounts:', e);
+  }
+}
+
+function renderSidebar(accounts) {
+  const list = document.getElementById('account-list');
+  const colors = ['#2f81f7','#3fb950','#d29922','#a371f7','#f85149',
+                  '#58a6ff','#79c0ff','#56d364','#e3b341'];
+
+  let totalUnread = 0;
+  const allItem = list.querySelector('[data-account=""]');
+
+  // Remove existing account items (keep "All")
+  Array.from(list.querySelectorAll('.account-item:not([data-account=""])')).forEach(el => el.remove());
+
+  accounts.forEach((acc, i) => {
+    totalUnread += acc.unread || 0;
+    const initials = acc.label.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    const color = colors[i % colors.length];
+    const div = document.createElement('div');
+    div.className = `account-item ${state.selectedAccount === acc.email ? 'active' : ''}`;
+    div.dataset.account = acc.email;
+    div.onclick = () => selectAccount(acc.email);
+    div.innerHTML = `
+      <div class="account-icon" style="background:${color}">${initials}</div>
+      <div class="account-label">${acc.label}</div>
+      ${acc.unread ? `<div class="unread-badge">${acc.unread}</div>` : ''}
+    `;
+    list.appendChild(div);
+  });
+
+  document.getElementById('badge-all').textContent = totalUnread || '0';
+}
+
+async function updateStats() {
+  try {
+    const stats = await api('/stats');
+    let totalUnread = 0;
+    (stats.per_account || []).forEach(a => totalUnread += a.unread || 0);
+    document.getElementById('stat-unread').textContent = totalUnread;
+    document.getElementById('stat-clients').textContent = stats.clients_today || 0;
+    document.getElementById('stat-leads').textContent = stats.job_leads_today || 0;
+  } catch (e) {}
+}
+
+// ── Account / Tab selection ────────────────────────────────────────────────
+function selectAccount(email) {
+  state.selectedAccount = email;
+  state.page = 1;
+  state.selectedEmail = null;
+
+  document.querySelectorAll('.account-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.account === email);
+  });
+
+  closeReader();
+  loadEmails();
+}
+
+function selectTab(tab) {
+  state.selectedTab = tab;
+  state.page = 1;
+  state.selectedEmail = null;
+
+  document.querySelectorAll('.tab').forEach(el => {
+    el.classList.toggle('active', el.dataset.tab === tab);
+  });
+
+  closeReader();
+  loadEmails();
+}
+
+// ── Load emails ────────────────────────────────────────────────────────────
+async function loadEmails() {
+  const list = document.getElementById('email-list');
+  list.innerHTML = '<div class="empty-state"><div class="icon spin">🔄</div><div>Loading…</div></div>';
+
+  try {
+    const params = new URLSearchParams({
+      folder: 'INBOX',
+      page: state.page,
+      limit: 50,
+    });
+    if (state.selectedAccount) params.set('account', state.selectedAccount);
+
+    // Handle "unread" tab specially (filter client-side since no direct API param)
+    let tagFilter = state.selectedTab;
+    if (tagFilter === 'unread') {
+      params.delete('tag');
+    } else if (tagFilter) {
+      params.set('tag', tagFilter);
+    }
+
+    const data = await api('/emails?' + params.toString());
+    let emails = data.emails || [];
+
+    // Client-side unread filter
+    if (state.selectedTab === 'unread') {
+      emails = emails.filter(e => !e.is_read);
+    }
+
+    state.emails = emails;
+    renderEmailList(emails);
+  } catch (e) {
+    list.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><div>Failed to load: ${e.message}</div></div>`;
+  }
+}
+
+function renderEmailList(emails) {
+  const list = document.getElementById('email-list');
+  if (!emails.length) {
+    list.innerHTML = '<div class="empty-state"><div class="icon">📭</div><div>No emails found</div></div>';
+    return;
+  }
+
+  list.innerHTML = emails.map(em => `
+    <div class="email-item ${em.is_read ? '' : 'unread'} ${state.selectedEmail === em.uid + em.account ? 'active' : ''}"
+         data-uid="${em.uid}" data-account="${em.account}"
+         onclick="openEmail('${em.account}', '${em.uid}')">
+      <div class="email-meta">
+        <div class="email-from">${escHtml(shortFrom(em.from_addr || ''))}</div>
+        <div class="email-date">${fmtDate(em.date_ts)}</div>
+      </div>
+      <div class="email-subject">${escHtml(em.subject || '(no subject)')}</div>
+      <div class="email-snippet">${escHtml(em.snippet || '')}</div>
+      ${em.tags && em.tags.length ? `<div class="tag-row">${renderTags(em.tags)}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+function shortFrom(from) {
+  // Extract display name or first part of email
+  const match = from.match(/^"?([^"<]+)"?\s*</);
+  if (match) return match[1].trim();
+  return from.replace(/<.*>/, '').trim() || from;
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// ── Email reader ───────────────────────────────────────────────────────────
+async function openEmail(account, uid) {
+  // Mark item active
+  state.selectedEmail = uid + account;
+  document.querySelectorAll('.email-item').forEach(el => {
+    el.classList.toggle('active',
+      el.dataset.uid === uid && el.dataset.account === account);
+  });
+
+  const readerEmpty = document.getElementById('reader-empty');
+  const readerContent = document.getElementById('reader-content');
+  readerEmpty.style.display = 'none';
+  readerContent.style.display = 'flex';
+
+  document.getElementById('reader-subject').textContent = 'Loading…';
+  document.getElementById('reader-body').innerHTML = '<div class="empty-state"><div class="icon spin">🔄</div></div>';
+
+  // Close draft area
+  document.getElementById('draft-area').classList.remove('open');
+  document.getElementById('draft-status').style.display = 'none';
+  document.getElementById('draft-textarea').value = '';
+  readerContent._account = account;
+  readerContent._uid = uid;
+
+  try {
+    const data = await api(`/emails/${encodeURIComponent(account)}/${encodeURIComponent(uid)}`);
+
+    document.getElementById('reader-subject').textContent = data.subject || '(no subject)';
+    document.getElementById('reader-from').textContent = data.from_addr || '';
+    document.getElementById('reader-to').textContent = data.to_addr || '';
+    document.getElementById('reader-date').textContent = data.date_str || '';
+    document.getElementById('reader-tags').innerHTML = renderTags(data.tags || []);
+
+    const bodyEl = document.getElementById('reader-body');
+    if (data.body_html) {
+      // Render HTML in sandboxed iframe
+      const iframe = document.createElement('iframe');
+      iframe.sandbox = 'allow-same-origin';
+      iframe.style.width = '100%';
+      iframe.style.minHeight = '400px';
+      iframe.style.border = 'none';
+      iframe.style.borderRadius = '6px';
+      iframe.style.background = '#fff';
+      bodyEl.innerHTML = '';
+      bodyEl.appendChild(iframe);
+      iframe.onload = () => {
+        // Auto-resize
+        try {
+          const h = iframe.contentDocument.body.scrollHeight;
+          iframe.style.height = (h + 20) + 'px';
+        } catch (e) {}
+      };
+      iframe.srcdoc = data.body_html;
+    } else {
+      bodyEl.innerHTML = `<pre class="plain-text">${escHtml(data.body_text || '(empty)')}</pre>`;
+    }
+  } catch (e) {
+    document.getElementById('reader-subject').textContent = 'Error loading email';
+    document.getElementById('reader-body').innerHTML = `<div class="empty-state">⚠️ ${e.message}</div>`;
+  }
+}
+
+function closeReader() {
+  document.getElementById('reader-empty').style.display = 'flex';
+  document.getElementById('reader-content').style.display = 'none';
+}
+
+// ── Draft ──────────────────────────────────────────────────────────────────
+function toggleDraft() {
+  const area = document.getElementById('draft-area');
+  area.classList.toggle('open');
+  if (area.classList.contains('open')) {
+    document.getElementById('draft-textarea').focus();
+  }
+}
+
+async function saveDraft() {
+  const content = document.getElementById('reader-content');
+  const account = content._account;
+  const uid = content._uid;
+  const text = document.getElementById('draft-textarea').value.trim();
+
+  if (!text) { toast('Please type a reply first'); return; }
+
+  try {
+    const data = await api(
+      `/emails/${encodeURIComponent(account)}/${encodeURIComponent(uid)}/draft-reply`,
+      { method:
