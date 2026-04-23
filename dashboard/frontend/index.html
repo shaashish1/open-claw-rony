@@ -220,6 +220,8 @@
     }
     .tab:hover { color: var(--text-1); }
     .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab-count { font-size: 11px; background: var(--bg-3); border-radius: 10px; padding: 1px 6px; margin-left: 4px; color: var(--text-2); }
+    .tab.active .tab-count { background: var(--accent); color: #fff; }
 
     #email-list {
       flex: 1;
@@ -477,11 +479,12 @@
   <!-- Email List Panel -->
   <div id="email-list-panel">
     <div id="filter-tabs">
-      <div class="tab active" data-tab="" onclick="selectTab('')">All</div>
-      <div class="tab" data-tab="client" onclick="selectTab('client')">Clients</div>
-      <div class="tab" data-tab="job-lead" onclick="selectTab('job-lead')">Job Leads</div>
-      <div class="tab" data-tab="payment" onclick="selectTab('payment')">Payments</div>
-      <div class="tab" data-tab="unread" onclick="selectTab('unread')">Unread</div>
+      <div class="tab active" data-tab="" onclick="selectTab('')">All <span class="tab-count" id="tc-all"></span></div>
+      <div class="tab" data-tab="unread" onclick="selectTab('unread')">Unread <span class="tab-count" id="tc-unread"></span></div>
+      <div class="tab" data-tab="job-lead" onclick="selectTab('job-lead')">💼 Job Leads <span class="tab-count" id="tc-job-lead"></span></div>
+      <div class="tab" data-tab="client" onclick="selectTab('client')">🤝 Clients <span class="tab-count" id="tc-client"></span></div>
+      <div class="tab" data-tab="payment" onclick="selectTab('payment')">💰 Payments <span class="tab-count" id="tc-payment"></span></div>
+      <div class="tab" data-tab="spam" onclick="selectTab('spam')">🚫 Spam <span class="tab-count" id="tc-spam"></span></div>
     </div>
     <div id="email-list">
       <div class="empty-state"><div class="icon">📭</div><div>Loading emails…</div></div>
@@ -642,6 +645,16 @@ async function updateStats() {
     document.getElementById('stat-unread').textContent = totalUnread;
     document.getElementById('stat-clients').textContent = stats.clients_today || 0;
     document.getElementById('stat-leads').textContent = stats.job_leads_today || 0;
+
+    // Update tab counts
+    const tc = stats.tag_counts || {};
+    const setCount = (id, val) => { const el = document.getElementById(id); if (el && val) el.textContent = val; else if (el) el.textContent = ''; };
+    setCount('tc-all', stats.total_emails || '');
+    setCount('tc-unread', totalUnread || '');
+    setCount('tc-job-lead', tc['job-lead'] || '');
+    setCount('tc-client', tc['client'] || '');
+    setCount('tc-payment', tc['payment'] || '');
+    setCount('tc-spam', tc['spam'] || '');
   } catch (e) {}
 }
 
