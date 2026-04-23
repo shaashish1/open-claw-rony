@@ -61,3 +61,23 @@ See AGENT_ROSTER.md
 - No CRM, email platform, or ad accounts yet (building from scratch)
 
 ## Updated: 2026-04-22
+
+## Marketing Database Schema (2026-04-23)
+- **marketing_contacts** table: email, name, source_account, source_domain, first_seen_ts, tags, unsubscribed
+- **marketing_phones** table: phone, name, email (FK optional), source, country_code, whatsapp_opted_in, added_ts, tags
+- Both tables feed into email + WhatsApp marketing campaigns
+- Sources: email inbox senders, Shopify orders (kharadionline.com), website signups (itgyani.com), manual import
+- Export format: CSV for Mailchimp/Brevo, JSON for n8n automations
+
+## Email Dashboard — Updated Rules (2026-04-23)
+- **Delete** = Move to IMAP Trash on server (NOT local delete). Always recoverable.
+- **Restore** = Move from Trash back to INBOX via IMAP
+- **Reply** = Real SMTP send. Draft shown first → Ashish approves → then sends
+- **Backup** = All emails backed up in SQLite before any destructive action
+- **Goal** = Clean inbox to only important/addressed-to-me emails
+- **Marketing DB** = Extract all sender emails → deduplicated master list for kharadionline.com + itgyani.com campaigns
+
+## SMTP Credentials needed for reply:
+- ashish.sharma14@gmail.com: App password already stored
+- ashish@itgyani.com: App password already stored
+- VPS accounts: SMTP via 194.233.64.74:587

@@ -1,21 +1,24 @@
 from __future__ import annotations
 """
 ITGYANI Dashboard — IMAP sync engine
-RULE: DRAFT ONLY - Never call SMTP send
 """
 import imaplib
 import ssl
 import email
+import smtplib
 import time
 import re
 import logging
 import threading
 import queue
+import os
 from typing import Dict, List, Optional
 from email.header import decode_header
 from email.utils import parsedate_to_datetime, parseaddr
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
-from config import ACCOUNTS, TAG_RULES
+from config import ACCOUNTS, TAG_RULES, SMTP_CONFIG
 import database as db
 
 logger = logging.getLogger("imap_sync")
@@ -175,6 +178,228 @@ def _fetch_and_store(imap: imaplib.IMAP4_SSL, uid: str, email_addr: str) -> bool
 
 
 # ── Quick sync (last N emails) ────────────────────────────────────────────────
+
+# ── IMAP Delete (move to Trash) ─────────────────────────────────────────────────────
+
+def delete_email(account_cfg: dict, uid: str) -> bool:
+    """
+    Move email to Trash on the IMAP server.
+    - Gmail: copies to [Gmail]/Trash then marks \\Deleted + expunges from INBOX.
+    - VPS / other: tries Trash then Deleted Items.
+    Returns True on success.
+    """
+    email_addr = account_cfg["email"]
+    host = account_cfg["imap_host"]
+    port = account_cfg["imap_port"]
+    password = account_cfg["password"]
+    ssl_verify = account_cfg["ssl_verify"]
+
+    if not password:
+        logger.warning(f"delete_email: no password for {email_addr}")
+        return False
+
+    ctx = make_ssl_context(ssl_verify)
+    try:
+        imap = imaplib.IMAP4_SSL(host, port, ssl_context=ctx)
+        imap.login(email_addr, password)
+
+        # Select INBOX (write mode)
+        status, _ = imap.select("INBOX")
+        if status != "OK":
+            logger.error(f"delete_email: cannot SELECT INBOX for {email_addr}")
+            imap.logout()
+            return False
+
+        is_gmail = "gmail" in host.lower()
+        if is_gmail:
+            trash_folder = "[Gmail]/Trash"
+        else:
+            # Try common trash folder names
+            trash_folder = None
+            for candidate in ["Trash", "INBOX.Trash", "Deleted Items", "Deleted Messages"]:
+                typ, lst = imap.list('""', f'"{candidate}"')
+                if typ == "OK" and lst and lst[0]:
+                    trash_folder = candidate
+                    break
+            if not trash_folder:
+                trash_folder = "Trash"  # fallback, server will create
+
+        # Copy to trash
+        result = imap.uid("COPY", uid, trash_folder)
+        if result[0] != "OK":
+            logger.error(f"delete_email: COPY to {trash_folder} failed for uid {uid} ({email_addr}): {result}")
+            imap.logout()
+            return False
+
+        # Mark as deleted in INBOX and expunge
+        imap.uid("STORE", uid, "+FLAGS", "(\\Deleted)")
+        imap.expunge()
+
+        imap.logout()
+        logger.info(f"delete_email: uid {uid} moved to {trash_folder} for {email_addr}")
+        return True
+
+    except Exception as e:
+        logger.error(f"delete_email error for {email_addr} uid {uid}: {e}")
+        try:
+            imap.logout()
+        except Exception:
+            pass
+        return False
+
+
+def restore_email(account_cfg: dict, uid: str) -> bool:
+    """
+    Move email from Trash back to INBOX.
+    Returns True on success.
+    """
+    email_addr = account_cfg["email"]
+    host = account_cfg["imap_host"]
+    port = account_cfg["imap_port"]
+    password = account_cfg["password"]
+    ssl_verify = account_cfg["ssl_verify"]
+
+    if not password:
+        return False
+
+    is_gmail = "gmail" in host.lower()
+    trash_folder = "[Gmail]/Trash" if is_gmail else "Trash"
+
+    ctx = make_ssl_context(ssl_verify)
+    try:
+        imap = imaplib.IMAP4_SSL(host, port, ssl_context=ctx)
+        imap.login(email_addr, password)
+
+        status, _ = imap.select(trash_folder)
+        if status != "OK":
+            logger.error(f"restore_email: cannot select {trash_folder} for {email_addr}")
+            imap.logout()
+            return False
+
+        # Copy back to INBOX
+        result = imap.uid("COPY", uid, "INBOX")
+        if result[0] != "OK":
+            logger.error(f"restore_email: COPY to INBOX failed for uid {uid}: {result}")
+            imap.logout()
+            return False
+
+        # Delete from trash
+        imap.uid("STORE", uid, "+FLAGS", "(\\Deleted)")
+        imap.expunge()
+
+        imap.logout()
+        logger.info(f"restore_email: uid {uid} restored to INBOX for {email_addr}")
+        return True
+
+    except Exception as e:
+        logger.error(f"restore_email error for {email_addr} uid {uid}: {e}")
+        try:
+            imap.logout()
+        except Exception:
+            pass
+        return False
+
+
+# ── SMTP Reply ───────────────────────────────────────────────────────────────────
+
+def send_reply(account_cfg: dict, original_uid: str, reply_text: str) -> bool:
+    """
+    Fetch the original email by UID, build a proper reply with In-Reply-To /
+    References headers, and send it via SMTP.
+    Logs the sent email to the database.
+    Returns True on success.
+    """
+    email_addr = account_cfg["email"]
+    host = account_cfg["imap_host"]
+    port = account_cfg["imap_port"]
+    password = account_cfg["password"]
+    ssl_verify = account_cfg["ssl_verify"]
+
+    if not password:
+        logger.warning(f"send_reply: no password for {email_addr}")
+        return False
+
+    # — Step 1: Fetch original email via IMAP —
+    ctx = make_ssl_context(ssl_verify)
+    orig_msg = None
+    try:
+        imap = imaplib.IMAP4_SSL(host, port, ssl_context=ctx)
+        imap.login(email_addr, password)
+        imap.select("INBOX", readonly=True)
+        status, msg_data = imap.uid("FETCH", original_uid, "(RFC822)")
+        if status == "OK" and msg_data and msg_data[0]:
+            raw = msg_data[0][1]
+            orig_msg = email.message_from_bytes(raw)
+        imap.logout()
+    except Exception as e:
+        logger.error(f"send_reply: IMAP fetch failed for {email_addr} uid {original_uid}: {e}")
+        return False
+
+    if orig_msg is None:
+        logger.error(f"send_reply: could not fetch original uid {original_uid} for {email_addr}")
+        return False
+
+    # — Step 2: Build reply headers —
+    orig_from = orig_msg.get("From", "")
+    orig_subject = decode_mime_words(orig_msg.get("Subject", ""))
+    orig_message_id = orig_msg.get("Message-ID", "")
+    orig_references = orig_msg.get("References", "")
+
+    reply_to = orig_from  # reply goes to the original sender
+    reply_subject = orig_subject if orig_subject.lower().startswith("re:") else f"Re: {orig_subject}"
+
+    # Build References chain
+    refs = orig_references.strip()
+    if orig_message_id:
+        refs = (refs + " " + orig_message_id).strip() if refs else orig_message_id
+
+    # — Step 3: Build MIME message —
+    msg = MIMEMultipart("alternative")
+    msg["From"] = email_addr
+    msg["To"] = reply_to
+    msg["Subject"] = reply_subject
+    if orig_message_id:
+        msg["In-Reply-To"] = orig_message_id
+    if refs:
+        msg["References"] = refs
+
+    msg.attach(MIMEText(reply_text, "plain", "utf-8"))
+
+    # — Step 4: Get SMTP config —
+    smtp_cfg = SMTP_CONFIG.get(host, SMTP_CONFIG.get("194.233.64.74"))
+    smtp_host = smtp_cfg["smtp_host"]
+    smtp_port = smtp_cfg["smtp_port"]
+
+    # — Step 5: Send via SMTP —
+    try:
+        with smtplib.SMTP(smtp_host, smtp_port, timeout=30) as server:
+            server.ehlo()
+            server.starttls()
+            server.ehlo()
+            server.login(email_addr, password)
+            server.sendmail(email_addr, [reply_to], msg.as_string())
+        logger.info(f"send_reply: sent reply from {email_addr} to {reply_to} re uid {original_uid}")
+    except Exception as e:
+        logger.error(f"send_reply: SMTP send failed for {email_addr}: {e}")
+        return False
+
+    # — Step 6: Log to DB —
+    try:
+        db.log_sent_email(
+            account=email_addr,
+            in_reply_to_uid=original_uid,
+            to_addr=reply_to,
+            subject=reply_subject,
+            body_text=reply_text,
+            sent_at=int(time.time()),
+        )
+    except Exception as e:
+        logger.warning(f"send_reply: could not log to DB: {e}")
+
+    return True
+
+
+# ── Quick sync (last N emails) ───────────────────────────────────────────────────────
 
 def sync_account_quick(account_cfg: dict, limit: int = 50) -> dict:
     """

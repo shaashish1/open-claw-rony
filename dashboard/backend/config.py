@@ -85,6 +85,29 @@ ACCOUNTS = [
 
 ACCOUNTS_BY_EMAIL = {a["email"]: a for a in ACCOUNTS}
 
+# ── SMTP config ───────────────────────────────────────────────────────────────
+SMTP_CONFIG = {
+    "imap.gmail.com": {
+        "smtp_host": "smtp.gmail.com",
+        "smtp_port": 587,
+        "use_tls": True,
+    },
+    "194.233.64.74": {
+        "smtp_host": "194.233.64.74",
+        "smtp_port": 587,
+        "use_tls": True,
+    },
+}
+
+# Our own domains — used to filter out internal addresses in marketing extraction
+OWN_DOMAINS = {
+    "itgyani.com",
+    "cryptogyani.com",
+    "kharadionline.com",
+    "theemployeefactory.com",
+    "technoflairlab.com",
+}
+
 # ── Telegram ──────────────────────────────────────────────────────────────────
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = "427179140"
