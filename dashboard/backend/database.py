@@ -80,6 +80,60 @@ def init_db():
         cur.execute("CREATE INDEX IF NOT EXISTS idx_emails_date ON emails(date_ts)")
         cur.execute("CREATE INDEX IF NOT EXISTS idx_emails_tags ON emails(tags)")
 
+        # deleted flag column — add if missing (idempotent migration)
+        try:
+            cur.execute("ALTER TABLE emails ADD COLUMN deleted INTEGER DEFAULT 0")
+        except Exception:
+            pass  # column already exists
+
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_emails_deleted ON emails(deleted)")
+
+        # sent_emails log
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS sent_emails (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                account         TEXT NOT NULL,
+                in_reply_to_uid TEXT,
+                to_addr         TEXT,
+                subject         TEXT,
+                body_text       TEXT,
+                sent_at         INTEGER NOT NULL
+            )
+        """)
+
+        # marketing_contacts
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS marketing_contacts (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                email           TEXT NOT NULL UNIQUE,
+                name            TEXT,
+                source_account  TEXT,
+                source_domain   TEXT,
+                first_seen_ts   INTEGER,
+                tags            TEXT DEFAULT '[]',
+                unsubscribed    INTEGER DEFAULT 0
+            )
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_mc_domain ON marketing_contacts(source_domain)")
+
+        # marketing_phones
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS marketing_phones (
+                id                INTEGER PRIMARY KEY AUTOINCREMENT,
+                phone             TEXT NOT NULL UNIQUE,
+                name              TEXT,
+                email             TEXT,
+                source            TEXT DEFAULT 'manual',
+                country_code      TEXT,
+                whatsapp_opted_in INTEGER DEFAULT 0,
+                added_ts          INTEGER,
+                tags              TEXT DEFAULT '[]',
+                notes             TEXT
+            )
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_mp_country ON marketing_phones(country_code)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_mp_whatsapp ON marketing_phones(whatsapp_opted_in)")
+
 
 # ── Email CRUD ────────────────────────────────────────────────────────────────
 
@@ -103,7 +157,38 @@ def upsert_email(account, folder, uid, from_addr, to_addr, subject,
               json.dumps(tags), synced_at))
 
 
-def get_emails(account=None, folder="INBOX", page=1, limit=50, tag_filter=None):
+def mark_deleted(account: str, uid: str) -> None:
+    """Set deleted=1 in DB for a given email (keeps the row for backup)."""
+    with db_cursor() as cur:
+        cur.execute(
+            "UPDATE emails SET deleted = 1 WHERE account = ? AND uid = ?",
+            (account, uid),
+        )
+
+
+def mark_restored(account: str, uid: str) -> None:
+    """Clear the deleted flag."""
+    with db_cursor() as cur:
+        cur.execute(
+            "UPDATE emails SET deleted = 0 WHERE account = ? AND uid = ?",
+            (account, uid),
+        )
+
+
+def log_sent_email(account: str, in_reply_to_uid: str, to_addr: str,
+                   subject: str, body_text: str, sent_at: int) -> int:
+    """Log a sent email to the sent_emails table."""
+    with db_cursor() as cur:
+        cur.execute("""
+            INSERT INTO sent_emails
+                (account, in_reply_to_uid, to_addr, subject, body_text, sent_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (account, in_reply_to_uid, to_addr, subject, body_text, sent_at))
+        return cur.lastrowid
+
+
+def get_emails(account=None, folder="INBOX", page=1, limit=50, tag_filter=None,
+               include_deleted=False):
     offset = (page - 1) * limit
     conditions = []
     params = []
@@ -117,6 +202,10 @@ def get_emails(account=None, folder="INBOX", page=1, limit=50, tag_filter=None):
     if tag_filter:
         conditions.append("tags LIKE ?")
         params.append(f'%"{tag_filter}"%')
+    if include_deleted:
+        conditions.append("deleted = 1")
+    else:
+        conditions.append("(deleted IS NULL OR deleted = 0)")
 
     where = ("WHERE " + " AND ".join(conditions)) if conditions else ""
     params += [limit, offset]
@@ -274,3 +363,249 @@ def mark_alert_sent(account, uid, tag, sent_at):
             """, (account, uid, tag, sent_at))
         except Exception:
             pass
+
+
+# ── Marketing Contacts ─────────────────────────────────────────────────────────
+
+def upsert_marketing_contact(email: str, name: str, source_account: str,
+                             source_domain: str, first_seen_ts: int,
+                             tags: list) -> None:
+    """Insert or update a marketing contact."""
+    with db_cursor() as cur:
+        cur.execute("""
+            INSERT INTO marketing_contacts
+                (email, name, source_account, source_domain, first_seen_ts, tags)
+            VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT(email) DO UPDATE SET
+                name           = COALESCE(excluded.name, marketing_contacts.name),
+                source_account = COALESCE(excluded.source_account, marketing_contacts.source_account),
+                source_domain  = COALESCE(excluded.source_domain, marketing_contacts.source_domain),
+                first_seen_ts  = MIN(excluded.first_seen_ts, marketing_contacts.first_seen_ts)
+        """, (email, name, source_account, source_domain, first_seen_ts,
+               json.dumps(tags)))
+
+
+def extract_marketing_contacts() -> int:
+    """
+    Scan all emails in DB, extract From addresses, and upsert into
+    marketing_contacts, skipping no-reply/internal/own-domain senders.
+    Returns count of contacts upserted.
+    """
+    import re as _re
+    from email.utils import parseaddr as _parseaddr
+    from config import OWN_DOMAINS
+
+    SKIP_PREFIXES = (
+        "no-reply@", "noreply@", "mailer-daemon@",
+        "notifications@", "support@", "postmaster@",
+        "bounce@", "do-not-reply@", "donotreply@",
+    )
+
+    seen = {}  # type: dict
+
+    with db_cursor() as cur:
+        cur.execute("""
+            SELECT account, from_addr, date_ts
+            FROM emails
+            WHERE from_addr IS NOT NULL AND from_addr != ''
+        """)
+        rows = cur.fetchall()
+
+    for row in rows:
+        raw_from = row["from_addr"] or ""
+        account = row["account"] or ""
+        date_ts = row["date_ts"] or 0
+
+        display_name, addr = _parseaddr(raw_from)
+        addr = addr.lower().strip()
+        if not addr or "@" not in addr:
+            continue
+
+        domain = addr.split("@", 1)[1]
+        if domain in OWN_DOMAINS:
+            continue
+
+        # Skip noise address prefixes
+        if any(addr.startswith(p) for p in SKIP_PREFIXES):
+            continue
+
+        # Keep earliest timestamp per address
+        if addr not in seen or date_ts < seen[addr]["ts"]:
+            seen[addr] = {
+                "name": display_name.strip(),
+                "source_account": account,
+                "source_domain": domain,
+                "ts": date_ts,
+            }
+
+    count = 0
+    for addr, info in seen.items():
+        try:
+            upsert_marketing_contact(
+                email=addr,
+                name=info["name"],
+                source_account=info["source_account"],
+                source_domain=info["source_domain"],
+                first_seen_ts=info["ts"],
+                tags=[],
+            )
+            count += 1
+        except Exception:
+            pass
+
+    return count
+
+
+def get_marketing_contacts(page: int = 1, limit: int = 50,
+                           source_domain: str = None,
+                           tag: str = None) -> list:
+    offset = (page - 1) * limit
+    conditions = []  # type: list
+    params = []  # type: list
+
+    if source_domain:
+        conditions.append("source_domain = ?")
+        params.append(source_domain)
+    if tag:
+        conditions.append("tags LIKE ?")
+        params.append(f'%"{tag}"%')
+
+    where = ("WHERE " + " AND ".join(conditions)) if conditions else ""
+    params += [limit, offset]
+
+    with db_cursor() as cur:
+        cur.execute(f"""
+            SELECT id, email, name, source_account, source_domain,
+                   first_seen_ts, tags, unsubscribed
+            FROM marketing_contacts
+            {where}
+            ORDER BY first_seen_ts DESC
+            LIMIT ? OFFSET ?
+        """, params)
+        rows = cur.fetchall()
+
+    result = []
+    for row in rows:
+        d = dict(row)
+        d["tags"] = json.loads(d.get("tags") or "[]")
+        result.append(d)
+    return result
+
+
+def get_marketing_stats() -> dict:
+    with db_cursor() as cur:
+        cur.execute("SELECT COUNT(*) as cnt FROM marketing_contacts")
+        total_emails = cur.fetchone()["cnt"]
+
+        cur.execute("SELECT COUNT(*) as cnt FROM marketing_contacts WHERE unsubscribed = 1")
+        unsub = cur.fetchone()["cnt"]
+
+        cur.execute("""
+            SELECT source_domain, COUNT(*) as cnt
+            FROM marketing_contacts
+            GROUP BY source_domain
+            ORDER BY cnt DESC
+        """)
+        by_domain_rows = cur.fetchall()
+
+        cur.execute("SELECT COUNT(*) as cnt FROM marketing_phones")
+        total_phones = cur.fetchone()["cnt"]
+
+        cur.execute("SELECT COUNT(*) as cnt FROM marketing_phones WHERE whatsapp_opted_in = 1")
+        whatsapp_opted_in = cur.fetchone()["cnt"]
+
+    by_domain = {row["source_domain"]: row["cnt"] for row in by_domain_rows}
+    return {
+        "total_emails": total_emails,
+        "total_phones": total_phones,
+        "whatsapp_opted_in": whatsapp_opted_in,
+        "unsubscribed": unsub,
+        "by_domain": by_domain,
+    }
+
+
+# ── Marketing Phones ──────────────────────────────────────────────────────────
+
+def add_marketing_phone(phone: str, name: str, email: str, source: str,
+                        country_code: str, whatsapp_opted_in: int,
+                        tags: list, notes: str, added_ts: int) -> int:
+    """Insert a new phone number. Returns the new row id."""
+    with db_cursor() as cur:
+        cur.execute("""
+            INSERT INTO marketing_phones
+                (phone, name, email, source, country_code,
+                 whatsapp_opted_in, tags, notes, added_ts)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (phone, name, email, source, country_code,
+               whatsapp_opted_in, json.dumps(tags), notes, added_ts))
+        return cur.lastrowid
+
+
+def get_marketing_phones(page: int = 1, limit: int = 50,
+                         country_code: str = None,
+                         whatsapp_opted_in: int = None) -> list:
+    offset = (page - 1) * limit
+    conditions = []  # type: list
+    params = []      # type: list
+
+    if country_code:
+        conditions.append("country_code = ?")
+        params.append(country_code)
+    if whatsapp_opted_in is not None:
+        conditions.append("whatsapp_opted_in = ?")
+        params.append(whatsapp_opted_in)
+
+    where = ("WHERE " + " AND ".join(conditions)) if conditions else ""
+    params += [limit, offset]
+
+    with db_cursor() as cur:
+        cur.execute(f"""
+            SELECT id, phone, name, email, source, country_code,
+                   whatsapp_opted_in, added_ts, tags, notes
+            FROM marketing_phones
+            {where}
+            ORDER BY added_ts DESC
+            LIMIT ? OFFSET ?
+        """, params)
+        rows = cur.fetchall()
+
+    result = []
+    for row in rows:
+        d = dict(row)
+        d["tags"] = json.loads(d.get("tags") or "[]")
+        result.append(d)
+    return result
+
+
+def get_all_marketing_export() -> dict:
+    """Return all contacts and phones for full JSON export."""
+    with db_cursor() as cur:
+        cur.execute("""
+            SELECT id, email, name, source_account, source_domain,
+                   first_seen_ts, tags, unsubscribed
+            FROM marketing_contacts
+            ORDER BY first_seen_ts DESC
+        """)
+        contact_rows = cur.fetchall()
+
+        cur.execute("""
+            SELECT id, phone, name, email, source, country_code,
+                   whatsapp_opted_in, added_ts, tags, notes
+            FROM marketing_phones
+            ORDER BY added_ts DESC
+        """)
+        phone_rows = cur.fetchall()
+
+    contacts = []
+    for row in contact_rows:
+        d = dict(row)
+        d["tags"] = json.loads(d.get("tags") or "[]")
+        contacts.append(d)
+
+    phones = []
+    for row in phone_rows:
+        d = dict(row)
+        d["tags"] = json.loads(d.get("tags") or "[]")
+        phones.append(d)
+
+    return {"contacts": contacts, "phones": phones}

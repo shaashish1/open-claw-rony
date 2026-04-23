@@ -1,7 +1,6 @@
 from __future__ import annotations
 """
 ITGYANI Unified Email Dashboard — FastAPI Backend
-RULE: DRAFT ONLY - Never call SMTP send
 """
 import asyncio
 import json
@@ -176,6 +175,10 @@ class DraftReplyRequest(BaseModel):
     reply_text: str
 
 
+class SendReplyRequest(BaseModel):
+    reply_text: str
+
+
 # ── Login / Logout ──────────────────────────────────────────────────────────
 
 @app.get("/login", response_class=HTMLResponse)
@@ -288,14 +291,16 @@ def get_emails(
     page: int = Query(1, ge=1),
     limit: int = Query(50, ge=1, le=200),
     tag: Optional[str] = Query(None),
+    deleted: bool = Query(False),
 ):
-    """List emails with optional filters."""
+    """List emails with optional filters. Set deleted=true to view trash."""
     emails = db.get_emails(
         account=account,
         folder=folder,
         page=page,
         limit=limit,
         tag_filter=tag,
+        include_deleted=deleted,
     )
     return {"emails": emails, "page": page, "limit": limit, "count": len(emails)}
 
@@ -309,12 +314,86 @@ def get_email_detail(account: str, uid: str, _auth: bool = Depends(require_auth)
     return row
 
 
+@app.delete("/api/emails/{account}/{uid}")
+async def delete_email(
+    account: str, uid: str,
+    background_tasks: BackgroundTasks,
+    _auth: bool = Depends(require_auth),
+):
+    """Move email to Trash on IMAP server and mark deleted in DB."""
+    if account not in ACCOUNTS_BY_EMAIL:
+        raise HTTPException(status_code=404, detail="Account not found")
+
+    account_cfg = ACCOUNTS_BY_EMAIL[account]
+
+    # Run IMAP delete in thread pool
+    loop = asyncio.get_event_loop()
+    ok = await loop.run_in_executor(
+        _executor, lambda: imap_sync.delete_email(account_cfg, uid)
+    )
+
+    if not ok:
+        raise HTTPException(status_code=500, detail="IMAP delete failed")
+
+    # Mark deleted in DB (keep row for backup)
+    db.mark_deleted(account, uid)
+
+    return {"status": "deleted", "recoverable": True}
+
+
+@app.post("/api/emails/{account}/{uid}/restore")
+async def restore_email(
+    account: str, uid: str,
+    _auth: bool = Depends(require_auth),
+):
+    """Move email from Trash back to INBOX."""
+    if account not in ACCOUNTS_BY_EMAIL:
+        raise HTTPException(status_code=404, detail="Account not found")
+
+    account_cfg = ACCOUNTS_BY_EMAIL[account]
+
+    loop = asyncio.get_event_loop()
+    ok = await loop.run_in_executor(
+        _executor, lambda: imap_sync.restore_email(account_cfg, uid)
+    )
+
+    if not ok:
+        raise HTTPException(status_code=500, detail="IMAP restore failed")
+
+    db.mark_restored(account, uid)
+    return {"status": "restored"}
+
+
+@app.post("/api/emails/{account}/{uid}/send-reply")
+async def send_reply(
+    account: str, uid: str,
+    body: SendReplyRequest,
+    _auth: bool = Depends(require_auth),
+):
+    """Send a real reply via SMTP and log it to the database."""
+    if account not in ACCOUNTS_BY_EMAIL:
+        raise HTTPException(status_code=404, detail="Account not found")
+
+    if not body.reply_text or not body.reply_text.strip():
+        raise HTTPException(status_code=400, detail="reply_text cannot be empty")
+
+    account_cfg = ACCOUNTS_BY_EMAIL[account]
+
+    loop = asyncio.get_event_loop()
+    ok = await loop.run_in_executor(
+        _executor,
+        lambda: imap_sync.send_reply(account_cfg, uid, body.reply_text),
+    )
+
+    if not ok:
+        raise HTTPException(status_code=500, detail="SMTP send failed")
+
+    return {"status": "sent"}
+
+
 @app.post("/api/emails/{account}/{uid}/draft-reply")
 def draft_reply(account: str, uid: str, body: DraftReplyRequest, _auth: bool = Depends(require_auth)):
-    """
-    Save a draft reply. NEVER sends.
-    RULE: DRAFT ONLY - Never call SMTP send
-    """
+    """Save a draft reply. Does NOT send."""
     if account not in ACCOUNTS_BY_EMAIL:
         raise HTTPException(status_code=404, detail="Account not found")
 
@@ -331,7 +410,7 @@ def draft_reply(account: str, uid: str, body: DraftReplyRequest, _auth: bool = D
         "account": account,
         "uid": uid,
         "status": "saved",
-        "note": "DRAFT ONLY — this will never be sent automatically",
+        "note": "Draft saved — use /send-reply to actually send",
     }
 
 
@@ -379,7 +458,111 @@ def sync_status(_auth: bool = Depends(require_auth)):
 def get_stats(_auth: bool = Depends(require_auth)):
     """Dashboard statistics."""
     stats = db.get_stats()
+    # Append marketing counts
+    try:
+        mstats = db.get_marketing_stats()
+        stats["marketing_contacts"] = mstats.get("total_emails", 0)
+        stats["marketing_phones"] = mstats.get("total_phones", 0)
+    except Exception:
+        stats["marketing_contacts"] = 0
+        stats["marketing_phones"] = 0
     return stats
+
+
+# ── Marketing API ────────────────────────────────────────────────────────────────
+
+@app.post("/api/marketing/extract")
+async def marketing_extract(_auth: bool = Depends(require_auth)):
+    """Extract marketing contacts from existing email database."""
+    loop = asyncio.get_event_loop()
+    count = await loop.run_in_executor(_executor, db.extract_marketing_contacts)
+    return {"contacts_extracted": count}
+
+
+@app.get("/api/marketing/contacts")
+def marketing_contacts(
+    _auth: bool = Depends(require_auth),
+    page: int = Query(1, ge=1),
+    limit: int = Query(50, ge=1, le=500),
+    source_domain: Optional[str] = Query(None),
+    tag: Optional[str] = Query(None),
+):
+    """Paginated marketing contact list."""
+    contacts = db.get_marketing_contacts(
+        page=page, limit=limit,
+        source_domain=source_domain, tag=tag,
+    )
+    return {"contacts": contacts, "page": page, "limit": limit, "count": len(contacts)}
+
+
+@app.get("/api/marketing/stats")
+def marketing_stats(_auth: bool = Depends(require_auth)):
+    """Marketing contacts + phones statistics."""
+    return db.get_marketing_stats()
+
+
+class AddPhoneRequest(BaseModel):
+    phone: str
+    name: Optional[str] = None
+    email: Optional[str] = None
+    source: Optional[str] = "manual"
+    country_code: Optional[str] = None
+    whatsapp_opted_in: Optional[int] = 0
+    tags: Optional[list] = None
+    notes: Optional[str] = None
+
+
+@app.post("/api/marketing/phones")
+def add_phone(body: AddPhoneRequest, _auth: bool = Depends(require_auth)):
+    """Add a phone number to the marketing_phones table."""
+    phone = (body.phone or "").strip()
+    if not phone:
+        raise HTTPException(status_code=400, detail="phone is required")
+    try:
+        row_id = db.add_marketing_phone(
+            phone=phone,
+            name=body.name or "",
+            email=body.email or "",
+            source=body.source or "manual",
+            country_code=body.country_code or "",
+            whatsapp_opted_in=body.whatsapp_opted_in or 0,
+            tags=body.tags or [],
+            notes=body.notes or "",
+            added_ts=int(time.time()),
+        )
+        return {"status": "added", "id": row_id, "phone": phone}
+    except Exception as exc:
+        # Unique constraint violation → already exists
+        if "UNIQUE" in str(exc).upper():
+            raise HTTPException(status_code=409, detail="Phone number already exists")
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get("/api/marketing/phones")
+def list_phones(
+    _auth: bool = Depends(require_auth),
+    page: int = Query(1, ge=1),
+    limit: int = Query(50, ge=1, le=500),
+    country_code: Optional[str] = Query(None),
+    whatsapp_opted_in: Optional[int] = Query(None),
+):
+    """Paginated phone list with optional filters."""
+    phones = db.get_marketing_phones(
+        page=page, limit=limit,
+        country_code=country_code,
+        whatsapp_opted_in=whatsapp_opted_in,
+    )
+    return {"phones": phones, "page": page, "limit": limit, "count": len(phones)}
+
+
+@app.get("/api/marketing/export")
+def marketing_export(_auth: bool = Depends(require_auth)):
+    """Full JSON export of all marketing contacts and phones."""
+    data = db.get_all_marketing_export()
+    return JSONResponse(
+        content=data,
+        headers={"Content-Disposition": 'attachment; filename="marketing_export.json"'},
+    )
 
 
 # ── Serve Frontend ────────────────────────────────────────────────────────────
