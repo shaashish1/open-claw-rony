@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 ITGYANI Unified Email Dashboard — FastAPI Backend
 RULE: DRAFT ONLY - Never call SMTP send

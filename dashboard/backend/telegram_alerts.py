@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 ITGYANI Dashboard — Telegram alert dispatcher
 RULE: DRAFT ONLY - Never call SMTP send
