@@ -91,7 +91,12 @@ TELEGRAM_CHAT_ID = "427179140"
 
 # ── Database ──────────────────────────────────────────────────────────────────
 # In Docker: /app/data/dashboard.db | Locally: ../data/dashboard.db
-_base = Path("/app") if Path("/app").exists() else Path(__file__).parent.parent
+# Always use directory relative to this file
+_base = Path(__file__).parent.parent
+if Path("/app/data").exists():
+    _base = Path("/app")
+elif Path("/opt/itgyani-dashboard/data").exists():
+    _base = Path("/opt/itgyani-dashboard")
 DB_PATH = str(_base / "data" / "dashboard.db")
 
 # ── Tagging rules ─────────────────────────────────────────────────────────────
