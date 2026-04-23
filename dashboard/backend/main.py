@@ -4,15 +4,17 @@ ITGYANI Unified Email Dashboard — FastAPI Backend
 RULE: DRAFT ONLY - Never call SMTP send
 """
 import asyncio
+import json
 import time
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from contextlib import asynccontextmanager
-from typing import Optional
+from typing import AsyncGenerator, Optional
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Query, Depends, Request, Form
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse, JSONResponse
+from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel
 import secrets
 import os
@@ -43,6 +45,10 @@ logger = logging.getLogger("main")
 
 _sync_lock = asyncio.Lock()
 _sync_status = {"running": False, "last_run": None, "last_result": None}
+_quick_sync_running = False
+
+# Thread pool for blocking IMAP work
+_executor = ThreadPoolExecutor(max_workers=min(len(ACCOUNTS) + 2, 12))
 
 
 async def background_sync():
@@ -50,16 +56,46 @@ async def background_sync():
         _sync_status["running"] = True
         try:
             result = await asyncio.get_event_loop().run_in_executor(
-                None, imap_sync.sync_all_accounts
+                _executor, imap_sync.sync_all_accounts
             )
             _sync_status["last_result"] = result
             _sync_status["last_run"] = int(time.time())
-            logger.info("Sync complete")
+            logger.info("Full sync complete")
         except Exception as e:
             logger.error(f"Sync failed: {e}")
             _sync_status["last_result"] = [{"error": str(e)}]
         finally:
             _sync_status["running"] = False
+
+
+async def quick_sync_all() -> list:
+    """
+    Run quick sync (last 50 per account) in parallel using ThreadPoolExecutor.
+    Typically completes in 10-15 seconds.
+    """
+    global _quick_sync_running
+    _quick_sync_running = True
+    loop = asyncio.get_event_loop()
+
+    async def _sync_one(account_cfg: dict) -> dict:
+        return await loop.run_in_executor(
+            _executor,
+            lambda: imap_sync.sync_account_quick(account_cfg, limit=50),
+        )
+
+    try:
+        tasks = [_sync_one(acc) for acc in ACCOUNTS]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        final = []
+        for r in results:
+            if isinstance(r, Exception):
+                final.append({"error": str(r)})
+            else:
+                final.append(r)
+        logger.info(f"Quick sync complete: {final}")
+        return final
+    finally:
+        _quick_sync_running = False
 
 
 async def alert_loop():
@@ -72,6 +108,19 @@ async def alert_loop():
         await asyncio.sleep(15 * 60)  # 15 minutes
 
 
+async def periodic_sync_loop():
+    """Full sync every 5 minutes as a fallback."""
+    # Give the quick sync + IDLE watchers a head start
+    await asyncio.sleep(5 * 60)
+    while True:
+        try:
+            logger.info("Periodic full sync starting...")
+            await background_sync()
+        except Exception as e:
+            logger.error(f"Periodic sync error: {e}")
+        await asyncio.sleep(5 * 60)
+
+
 # ── App lifespan ──────────────────────────────────────────────────────────────
 
 @asynccontextmanager
@@ -79,17 +128,45 @@ async def lifespan(app: FastAPI):
     db.init_db()
     logger.info("Database initialized")
 
-    # Kick off initial sync in background (don't block startup)
-    asyncio.create_task(background_sync())
+    # 1. Quick sync all accounts in parallel (fast, populates DB immediately)
+    logger.info("Starting quick sync for all accounts...")
+    asyncio.create_task(_startup_sequence())
+
+    # 2. Alert loop
     asyncio.create_task(alert_loop())
+
+    # 3. Periodic full sync every 5 minutes
+    asyncio.create_task(periodic_sync_loop())
 
     yield
     logger.info("Shutting down")
 
 
+async def _startup_sequence():
+    """Quick sync → start IDLE watchers → full historical sync."""
+    try:
+        # Phase 1: quick sync (parallel, fast)
+        await quick_sync_all()
+        logger.info("Quick sync done, starting IDLE watchers...")
+
+        # Phase 2: start IDLE watcher threads
+        for account_cfg in ACCOUNTS:
+            try:
+                imap_sync.start_idle_watcher(account_cfg)
+            except Exception as e:
+                logger.error(f"Failed to start IDLE watcher for {account_cfg['email']}: {e}")
+
+        # Phase 3: full historical sync in background
+        logger.info("Starting full historical sync in background...")
+        await background_sync()
+
+    except Exception as e:
+        logger.error(f"Startup sequence error: {e}")
+
+
 app = FastAPI(
     title="ITGYANI Email Dashboard",
-    version="1.0.0",
+    version="2.0.0",
     lifespan=lifespan,
 )
 
@@ -142,6 +219,48 @@ def logout():
     response = RedirectResponse(url="/login", status_code=302)
     response.delete_cookie("session")
     return response
+
+# ── SSE Event Stream ──────────────────────────────────────────────────────────
+
+@app.get("/api/events")
+async def sse_events(request: Request, _auth: bool = Depends(require_auth)):
+    """
+    Server-Sent Events endpoint. Streams new-mail notifications to the browser.
+    Format: data: {"type":"new_mail","account":"x@y.com","count":1}
+    """
+    async def event_generator() -> AsyncGenerator[str, None]:
+        # Send initial heartbeat so the browser knows we're connected
+        yield "data: {\"type\":\"connected\"}\n\n"
+
+        while True:
+            if await request.is_disconnected():
+                break
+
+            # Drain the new_mail_queue (non-blocking)
+            events_sent = 0
+            while True:
+                try:
+                    event = imap_sync.new_mail_queue.get_nowait()
+                    yield f"data: {json.dumps(event)}\n\n"
+                    events_sent += 1
+                except Exception:
+                    break  # queue empty
+
+            # Keepalive comment every 25s
+            if events_sent == 0:
+                yield ": keepalive\n\n"
+
+            await asyncio.sleep(25)
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",  # disable nginx buffering
+        },
+    )
+
 
 # ── API Routes ────────────────────────────────────────────────────────────────
 
@@ -225,7 +344,7 @@ def get_drafts(_auth: bool = Depends(require_auth)):
 
 @app.post("/api/sync")
 async def trigger_sync(background_tasks: BackgroundTasks):
-    """Trigger background sync of all accounts."""
+    """Trigger background full sync of all accounts."""
     if _sync_status["running"]:
         return {"status": "already_running", "message": "Sync is already in progress"}
 
@@ -233,9 +352,27 @@ async def trigger_sync(background_tasks: BackgroundTasks):
     return {"status": "started", "message": "Sync started in background"}
 
 
+@app.post("/api/sync/quick")
+async def trigger_quick_sync(_auth: bool = Depends(require_auth)):
+    """
+    Trigger a quick sync (last 50 per account) and return immediately.
+    Used by the frontend on page load for fast initial population.
+    """
+    global _quick_sync_running
+    if _quick_sync_running:
+        return {"status": "already_running", "message": "Quick sync already in progress"}
+
+    # Run in background, don't await
+    asyncio.create_task(quick_sync_all())
+    return {"status": "started", "message": "Quick sync started"}
+
+
 @app.get("/api/sync/status")
 def sync_status(_auth: bool = Depends(require_auth)):
-    return _sync_status
+    return {
+        **_sync_status,
+        "quick_sync_running": _quick_sync_running,
+    }
 
 
 @app.get("/api/stats")

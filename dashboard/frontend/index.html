@@ -84,6 +84,26 @@
 
     .stat-chip .num { font-weight: 700; color: var(--text-1); }
 
+    /* Syncing indicator */
+    #syncing-indicator {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-3);
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 10px;
+    }
+    #syncing-indicator.visible { display: flex; }
+    #syncing-indicator .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--orange);
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
     #sync-btn {
       padding: 7px 16px;
       background: var(--accent);
@@ -415,6 +435,10 @@
       max-width: 320px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.4);
     }
+    #toast.new-mail {
+      border-color: var(--green);
+      background: #1a3a2a;
+    }
   </style>
 </head>
 <body>
@@ -426,9 +450,11 @@
     <div class="stat-chip"><span>Unread</span><span class="num" id="stat-unread">—</span></div>
     <div class="stat-chip"><span>🤝 Clients today</span><span class="num" id="stat-clients">—</span></div>
     <div class="stat-chip"><span>💼 Leads today</span><span class="num" id="stat-leads">—</span></div>
-    <div class="stat-chip" id="sync-status-chip" style="display:none">
-      <span id="sync-status-text"></span>
-    </div>
+  </div>
+  <!-- Syncing indicator -->
+  <div id="syncing-indicator">
+    <div class="dot"></div>
+    <span>Syncing…</span>
   </div>
   <button id="sync-btn" onclick="triggerSync()">🔄 Sync All</button>
 </div>
@@ -508,6 +534,7 @@ const state = {
   emails: [],
   page: 1,
   syncing: false,
+  initialSyncDone: false,
 };
 
 // ── API helpers ────────────────────────────────────────────────────────────
@@ -522,11 +549,24 @@ async function api(path, opts = {}) {
 }
 
 // ── Toast ──────────────────────────────────────────────────────────────────
-function toast(msg, duration = 3000) {
+let _toastTimer = null;
+function toast(msg, duration = 3500, cls = '') {
   const el = document.getElementById('toast');
   el.textContent = msg;
+  el.className = cls ? `new-mail` : '';
   el.style.display = 'block';
-  setTimeout(() => el.style.display = 'none', duration);
+  if (_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => { el.style.display = 'none'; }, duration);
+}
+
+// ── Syncing indicator ──────────────────────────────────────────────────────
+function showSyncing(visible) {
+  const el = document.getElementById('syncing-indicator');
+  if (visible) {
+    el.classList.add('visible');
+  } else {
+    el.classList.remove('visible');
+  }
 }
 
 // ── Tag rendering ──────────────────────────────────────────────────────────
@@ -571,7 +611,6 @@ function renderSidebar(accounts) {
                   '#58a6ff','#79c0ff','#56d364','#e3b341'];
 
   let totalUnread = 0;
-  const allItem = list.querySelector('[data-account=""]');
 
   // Remove existing account items (keep "All")
   Array.from(list.querySelectorAll('.account-item:not([data-account=""])')).forEach(el => el.remove());
@@ -634,9 +673,11 @@ function selectTab(tab) {
 }
 
 // ── Load emails ────────────────────────────────────────────────────────────
-async function loadEmails() {
+async function loadEmails(silent = false) {
   const list = document.getElementById('email-list');
-  list.innerHTML = '<div class="empty-state"><div class="icon spin">🔄</div><div>Loading…</div></div>';
+  if (!silent) {
+    list.innerHTML = '<div class="empty-state"><div class="icon spin">🔄</div><div>Loading…</div></div>';
+  }
 
   try {
     const params = new URLSearchParams({
@@ -665,7 +706,9 @@ async function loadEmails() {
     state.emails = emails;
     renderEmailList(emails);
   } catch (e) {
-    list.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><div>Failed to load: ${e.message}</div></div>`;
+    if (!silent) {
+      list.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><div>Failed to load: ${e.message}</div></div>`;
+    }
   }
 }
 
@@ -679,7 +722,7 @@ function renderEmailList(emails) {
   list.innerHTML = emails.map(em => `
     <div class="email-item ${em.is_read ? '' : 'unread'} ${state.selectedEmail === em.uid + em.account ? 'active' : ''}"
          data-uid="${em.uid}" data-account="${em.account}"
-         onclick="openEmail('${em.account}', '${em.uid}')">
+         onclick="openEmail('${escAttr(em.account)}', '${escAttr(em.uid)}')">
       <div class="email-meta">
         <div class="email-from">${escHtml(shortFrom(em.from_addr || ''))}</div>
         <div class="email-date">${fmtDate(em.date_ts)}</div>
@@ -692,7 +735,6 @@ function renderEmailList(emails) {
 }
 
 function shortFrom(from) {
-  // Extract display name or first part of email
   const match = from.match(/^"?([^"<]+)"?\s*</);
   if (match) return match[1].trim();
   return from.replace(/<.*>/, '').trim() || from;
@@ -706,9 +748,12 @@ function escHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
+function escAttr(str) {
+  return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+
 // ── Email reader ───────────────────────────────────────────────────────────
 async function openEmail(account, uid) {
-  // Mark item active
   state.selectedEmail = uid + account;
   document.querySelectorAll('.email-item').forEach(el => {
     el.classList.toggle('active',
@@ -741,7 +786,6 @@ async function openEmail(account, uid) {
 
     const bodyEl = document.getElementById('reader-body');
     if (data.body_html) {
-      // Render HTML in sandboxed iframe
       const iframe = document.createElement('iframe');
       iframe.sandbox = 'allow-same-origin';
       iframe.style.width = '100%';
@@ -752,7 +796,6 @@ async function openEmail(account, uid) {
       bodyEl.innerHTML = '';
       bodyEl.appendChild(iframe);
       iframe.onload = () => {
-        // Auto-resize
         try {
           const h = iframe.contentDocument.body.scrollHeight;
           iframe.style.height = (h + 20) + 'px';
@@ -793,4 +836,147 @@ async function saveDraft() {
   try {
     const data = await api(
       `/emails/${encodeURIComponent(account)}/${encodeURIComponent(uid)}/draft-reply`,
-      { method:
+      {
+        method: 'POST',
+        body: JSON.stringify({ reply_text: text }),
+      }
+    );
+    const statusEl = document.getElementById('draft-status');
+    statusEl.style.display = 'block';
+    setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
+    document.getElementById('draft-area').classList.remove('open');
+    toast('Draft saved!');
+  } catch (e) {
+    toast(`Error saving draft: ${e.message}`);
+  }
+}
+
+// ── Sync ───────────────────────────────────────────────────────────────────
+async function triggerSync() {
+  const btn = document.getElementById('sync-btn');
+  if (state.syncing) return;
+  state.syncing = true;
+  btn.disabled = true;
+  btn.textContent = '⏳ Syncing…';
+  showSyncing(true);
+
+  try {
+    await api('/sync', { method: 'POST' });
+    toast('Sync started in background');
+    // Refresh after a brief delay
+    setTimeout(async () => {
+      await loadEmails(true);
+      await loadAccounts();
+      showSyncing(false);
+    }, 8000);
+  } catch (e) {
+    toast(`Sync error: ${e.message}`);
+    showSyncing(false);
+  } finally {
+    state.syncing = false;
+    btn.disabled = false;
+    btn.textContent = '🔄 Sync All';
+  }
+}
+
+// ── Quick sync on page load ────────────────────────────────────────────────
+async function initialQuickSync() {
+  showSyncing(true);
+  try {
+    await api('/sync/quick', { method: 'POST' });
+    // Wait a moment for sync to start, then load emails
+    await new Promise(r => setTimeout(r, 3000));
+    await loadEmails();
+    await loadAccounts();
+  } catch (e) {
+    console.warn('Quick sync failed:', e);
+    // Still try to load whatever is in DB
+    await loadEmails();
+    await loadAccounts();
+  } finally {
+    state.initialSyncDone = true;
+    showSyncing(false);
+  }
+}
+
+// ── SSE — real-time new mail ───────────────────────────────────────────────
+function connectSSE() {
+  if (!window.EventSource) {
+    console.warn('EventSource not supported, falling back to polling');
+    return;
+  }
+
+  const es = new EventSource('/api/events');
+
+  es.onopen = () => {
+    console.log('SSE connected');
+  };
+
+  es.onmessage = async (event) => {
+    try {
+      const data = JSON.parse(event.data);
+
+      if (data.type === 'connected') {
+        console.log('SSE stream ready');
+        return;
+      }
+
+      if (data.type === 'new_mail') {
+        const account = data.account || 'unknown';
+        const count = data.count || 1;
+        const label = count === 1
+          ? `📬 New email on ${account.split('@')[0]}`
+          : `📬 ${count} new emails on ${account.split('@')[0]}`;
+
+        toast(label, 5000, 'new-mail');
+
+        // Refresh email list if viewing the affected account or all
+        if (!state.selectedAccount || state.selectedAccount === account) {
+          await loadEmails(true);
+        }
+        await loadAccounts();
+        await updateStats();
+      }
+    } catch (e) {
+      console.warn('SSE parse error:', e);
+    }
+  };
+
+  es.onerror = (err) => {
+    console.warn('SSE error, will reconnect automatically', err);
+    // EventSource reconnects automatically
+  };
+
+  return es;
+}
+
+// ── Auto-refresh fallback (every 60 seconds) ───────────────────────────────
+function startAutoRefresh() {
+  setInterval(async () => {
+    if (document.hidden) return; // don't refresh if tab is hidden
+    try {
+      await loadEmails(true);
+      await loadAccounts();
+    } catch (e) {
+      console.warn('Auto-refresh failed:', e);
+    }
+  }, 60 * 1000);
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+async function init() {
+  // 1. Quick sync + load emails immediately
+  await initialQuickSync();
+
+  // 2. Connect SSE for real-time updates
+  connectSSE();
+
+  // 3. Auto-refresh every 60 seconds as fallback
+  startAutoRefresh();
+}
+
+// Kick off on DOM ready
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
