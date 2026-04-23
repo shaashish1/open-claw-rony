@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 ITGYANI Dashboard — SQLite database layer
 RULE: DRAFT ONLY - Never call SMTP send
