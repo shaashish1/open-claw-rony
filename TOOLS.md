@@ -38,3 +38,15 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 ---
 
 Add whatever helps you do your job. This is your cheat sheet.
+
+### Azure AI Services (Sweden Central)
+- **STT:** https://swedencentral.stt.speech.microsoft.com — ogg/opus supported ✅
+- **TTS:** https://swedencentral.tts.speech.microsoft.com
+- **Region:** swedencentral
+- **Key:** stored in config/.env as AZURE_SPEECH_KEY
+
+### Voice Transcription
+- Incoming .ogg voice notes → POST to Azure STT REST API
+- Content-Type: audio/ogg; codecs=opus
+- Language: en-US (auto-detect available)
+- Script: workspace/scripts/transcribe.py
