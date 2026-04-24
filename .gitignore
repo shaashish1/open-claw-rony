@@ -1,8 +1,13 @@
-# Secrets - never commit
+# Secrets - NEVER commit
 config/.env
 dashboard/backend/.env
+dashboard/.env
 **/.env
 *.env
+
+# Docker compose with secrets
+# Use docker-compose.yml (no secrets) + .env file instead
+dashboard/.env.local
 
 # Python
 __pycache__/
