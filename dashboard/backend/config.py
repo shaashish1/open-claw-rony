@@ -8,15 +8,10 @@ import ssl
 from pathlib import Path
 
 # ── Account definitions ──────────────────────────────────────────────────────
+# NOTE: ashish.sharma14@gmail.com (personal Gmail) intentionally excluded.
+# Handled manually by Ashish for privacy/safety reasons.
+
 ACCOUNTS = [
-    {
-        "email": os.getenv("GMAIL_PERSONAL_EMAIL", "ashish.sharma14@gmail.com"),
-        "imap_host": "imap.gmail.com",
-        "imap_port": 993,
-        "password": os.getenv("GMAIL_PERSONAL_PASS", ""),
-        "ssl_verify": True,
-        "label": "Gmail Personal",
-    },
     {
         "email": os.getenv("GMAIL_ITGYANI_EMAIL", "ashish@itgyani.com"),
         "imap_host": "imap.gmail.com",

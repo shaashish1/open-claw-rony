@@ -38,7 +38,6 @@ See AGENT_ROSTER.md
 ## Email Accounts
 | Account | Purpose |
 |---|---|
-| ashish.sharma14@gmail.com | Personal Gmail |
 | ashish@itgyani.com | ITGYANI main |
 | ashish@cryptogyani.com | CryptoGyani personal |
 | ashish@theemployeefactory.com | Employee Factory |
@@ -52,7 +51,6 @@ See AGENT_ROSTER.md
 **Email access method:** App Password + IMAP (Option B) + Option C forwarding also acceptable
 **ashish@itgyani.com:** Google Workspace
 **All other custom domain emails:** Self-hosted VPS (IMAP)
-**ashish.sharma14@gmail.com:** Personal Gmail (App Password + IMAP)
 
 ## Tools Available
 - OpenClaw (this system) — main COO agent
@@ -78,7 +76,6 @@ See AGENT_ROSTER.md
 - **Marketing DB** = Extract all sender emails → deduplicated master list for kharadionline.com + itgyani.com campaigns
 
 ## SMTP Credentials needed for reply:
-- ashish.sharma14@gmail.com: App password already stored
 - ashish@itgyani.com: App password already stored
 - VPS accounts: SMTP via 194.233.64.74:587
 
