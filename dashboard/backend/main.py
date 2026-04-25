@@ -184,16 +184,20 @@ class SendReplyRequest(BaseModel):
 @app.get("/login", response_class=HTMLResponse)
 def login_page():
     return HTMLResponse("""
-<!DOCTYPE html><html><head><title>ITGYANI Login</title>
+<!DOCTYPE html><html><head><title>ITGYANI OS — Login</title>
 <style>
-  body{background:#0d1117;color:#e6edf3;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}
-  .box{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:40px;width:320px;text-align:center}
-  h2{margin:0 0 24px;font-size:20px}input{width:100%;padding:10px;margin:8px 0;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3;font-size:14px;box-sizing:border-box}
-  button{width:100%;padding:12px;background:#2f81f7;border:none;border-radius:6px;color:#fff;font-size:15px;cursor:pointer;margin-top:8px}
-  button:hover{background:#388bfd}.err{color:#f85149;font-size:13px;margin-top:8px}
+  body{background:#0b0f1a;color:#e2e8f0;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}
+  .box{background:#111827;border:1px solid #1f2d40;border-radius:12px;padding:40px;width:340px;text-align:center}
+  .logo{font-size:22px;font-weight:800;color:#fff;margin-bottom:4px}.logo span{color:#6366f1}
+  .sub{font-size:11px;color:#4b5563;letter-spacing:2px;text-transform:uppercase;margin-bottom:24px}
+  h2{margin:0 0 24px;font-size:20px}input{width:100%;padding:10px;margin:8px 0;background:#0b0f1a;border:1px solid #1f2d40;border-radius:6px;color:#e2e8f0;font-size:14px;box-sizing:border-box}
+  input:focus{outline:none;border-color:#6366f1}
+  button{width:100%;padding:12px;background:#4f46e5;border:none;border-radius:6px;color:#fff;font-size:15px;cursor:pointer;margin-top:8px;font-weight:600}
+  button:hover{background:#4338ca}.err{color:#f87171;font-size:13px;margin-top:8px}
 </style></head><body>
 <div class="box">
-  <h2>📧 ITGYANI Mail</h2>
+  <div class="logo"><span>IT</span>GYANI</div>
+  <div class="sub">OS v3 · Command Center</div>
   <form method="post" action="/login">
     <input name="username" placeholder="Username" required autofocus>
     <input name="password" type="password" placeholder="Password" required>
@@ -208,12 +212,12 @@ def do_login(username: str = Form(...), password: str = Form(...)):
     ok_user = secrets.compare_digest(username, DASH_USER)
     ok_pass = secrets.compare_digest(password, DASH_PASS)
     if not (ok_user and ok_pass):
-        return HTMLResponse("""<!DOCTYPE html><html><head><title>ITGYANI Login</title>
-<style>body{background:#0d1117;color:#e6edf3;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}.box{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:40px;width:320px;text-align:center}h2{margin:0 0 24px;font-size:20px}input{width:100%;padding:10px;margin:8px 0;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3;font-size:14px;box-sizing:border-box}button{width:100%;padding:12px;background:#2f81f7;border:none;border-radius:6px;color:#fff;font-size:15px;cursor:pointer;margin-top:8px}button:hover{background:#388bfd}.err{color:#f85149;font-size:13px;margin-top:8px}</style></head><body>
-<div class="box"><h2>📧 ITGYANI Mail</h2><form method="post" action="/login">
+        return HTMLResponse("""<!DOCTYPE html><html><head><title>ITGYANI OS — Login</title>
+<style>body{background:#0b0f1a;color:#e2e8f0;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}.box{background:#111827;border:1px solid #1f2d40;border-radius:12px;padding:40px;width:340px;text-align:center}.logo{font-size:22px;font-weight:800;color:#fff;margin-bottom:4px}.logo span{color:#6366f1}.sub{font-size:11px;color:#4b5563;letter-spacing:2px;text-transform:uppercase;margin-bottom:24px}input{width:100%;padding:10px;margin:8px 0;background:#0b0f1a;border:1px solid #1f2d40;border-radius:6px;color:#e2e8f0;font-size:14px;box-sizing:border-box}button{width:100%;padding:12px;background:#4f46e5;border:none;border-radius:6px;color:#fff;font-size:15px;cursor:pointer;margin-top:8px;font-weight:600}button:hover{background:#4338ca}.err{color:#f87171;font-size:13px;margin-top:10px}</style></head><body>
+<div class="box"><div class="logo"><span>IT</span>GYANI</div><div class="sub">OS v3 · Command Center</div><form method="post" action="/login">
 <input name="username" placeholder="Username" required value=""><input name="password" type="password" placeholder="Password" required>
-<button type="submit">Sign In</button><div class="err">Invalid username or password</div></form></div></body></html>""", status_code=401)
-    response = RedirectResponse(url="/", status_code=302)
+<button type="submit">Sign In</button><div class="err">Invalid credentials</div></form></div></body></html>""", status_code=401)
+    response = RedirectResponse(url="/ops", status_code=302)
     response.set_cookie("session", SESSION_TOKEN, httponly=True, samesite="lax", max_age=86400*7)
     return response
 
