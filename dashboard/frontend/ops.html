@@ -112,7 +112,7 @@ button.btn-ghost:hover{background:#334155}
   <!-- Sprint Board -->
   <div class="card p-4">
     <div class="flex items-center justify-between mb-3">
-      <div class="section-title mb-0">Sprint 1 — Week1 Foundation</div>
+      <div class="section-title mb-0" id="sprint-header">Sprint 1 — Week1 Foundation</div>
       <a href="https://itgyani.atlassian.net/jira/software/projects/IT/boards/7" target="_blank"
          class="text-xs text-indigo-400 hover:text-indigo-300">Open Jira →</a>
     </div>
@@ -218,29 +218,50 @@ AGENTS.forEach(a=>{
   </div>`;
 });
 
-// ── Sprint board static data (Jira API integration next sprint) ──────────────
-const SPRINT=[
-  {id:'CI Alerts',   label:'10 webhooks → OpenAlgo',          status:'done'},
-  {id:'YUKTI-3',     label:'OpenAlgo audit & strategies',      status:'done'},
-  {id:'Security',    label:'Secrets purged, VPS pass rotated', status:'done'},
-  {id:'IT-20',       label:'ITGYANI Service Page (NIKKI)',     status:'in-progress'},
-  {id:'IT-21',       label:'Cold Email 100 prospects (ZARA)',  status:'in-progress'},
-  {id:'CG-54',       label:'CryptoGyani SEO Launch (PRIYA)',   status:'in-progress'},
-  {id:'IT-26',       label:'Email cleanup workflow (MAYA)',    status:'in-progress'},
-  {id:'TEF-17',      label:'OpenMAIC LMS go-live',             status:'pending'},
-  {id:'KO-14',       label:'Kharadi Online product pages',     status:'pending'},
-  {id:'YUKTI-4',     label:'Fyers auto-login Monday',          status:'pending'},
-];
-const sb=document.getElementById('sprint-board');
-sb.innerHTML='';
-SPRINT.forEach(t=>{
-  const badge=t.status==='done'?'badge-done':t.status==='in-progress'?'badge-building':'badge-standby';
-  const label=t.status==='done'?'Done ✓':t.status==='in-progress'?'In Progress':'Pending';
-  sb.innerHTML+=`<div class="flex items-center justify-between p-2 rounded-lg bg-slate-800/60">
-    <div><span class="text-slate-500 text-xs mr-1">${t.id}</span><span class="text-slate-300 text-sm">${t.label}</span></div>
-    <span class="text-xs px-2 py-0.5 rounded ${badge} shrink-0 ml-2">${label}</span>
-  </div>`;
-});
+// ── Sprint board — live from Jira ────────────────────────────────────────────
+async function loadJiraSprint(){
+  const sb=document.getElementById('sprint-board');
+  const sh=document.getElementById('sprint-header');
+  try{
+    const r=await fetch('/api/ops/jira-sprint',{cache:'no-store'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const d=await r.json();
+
+    // Update KPI
+    const done=d.done||0; const total=d.total||21;
+    document.getElementById('kpi-sprint').textContent=`${done}/${total}`;
+    document.getElementById('kpi-sprint-label').textContent=`Done / ${total} stories`;
+    document.getElementById('kpi-sprint-bar').style.width=(total>0?(done/total)*100:0)+'%';
+    if(sh) sh.textContent=`Sprint 1 — ${total} Stories (${done} done, ${d.in_progress||0} in progress)`;
+
+    sb.innerHTML='';
+    const issues=d.issues||[];
+    if(!issues.length){sb.innerHTML='<div class="text-slate-500 text-sm py-4 text-center">No issues found</div>';return;}
+
+    // Show first 12
+    issues.slice(0,12).forEach(t=>{
+      const cat=t.status_cat||'new';
+      const badge=cat==='done'?'badge-done':cat==='indeterminate'?'badge-building':'badge-standby';
+      const label=cat==='done'?'Done':cat==='indeterminate'?'In Progress':'To Do';
+      const jiraUrl=`https://itgyani.atlassian.net/browse/${t.key}`;
+      sb.innerHTML+=`<div class="flex items-center justify-between p-2 rounded-lg bg-slate-800/60 hover:bg-slate-700/60 transition">
+        <div class="min-w-0 flex-1">
+          <a href="${jiraUrl}" target="_blank" class="text-xs text-indigo-400 hover:text-indigo-300 mr-1.5">${t.key}</a>
+          <span class="text-slate-300 text-sm">${t.summary}</span>
+          ${t.assignee&&t.assignee!=='Unassigned'?`<span class="text-xs text-slate-500 ml-1">· ${t.assignee}</span>`:''}
+        </div>
+        <span class="text-xs px-2 py-0.5 rounded ${badge} shrink-0 ml-2">${label}</span>
+      </div>`;
+    });
+    if(issues.length>12){
+      sb.innerHTML+=`<a href="https://itgyani.atlassian.net/jira/software/projects/IT/boards/7" target="_blank"
+        class="block text-center py-2 text-xs text-indigo-400 hover:text-indigo-300">+ ${issues.length-12} more in Jira →</a>`;
+    }
+  }catch(e){
+    sb.innerHTML=`<div class="text-yellow-400 text-xs py-2">⚠ Jira API error: ${e.message}<br><a href="https://itgyani.atlassian.net/jira/software/projects/IT/boards/7" target="_blank" class="text-indigo-400">Open Jira directly →</a></div>`;
+  }
+}
+loadJiraSprint();
 
 // ── Live data from /api/ops/status ───────────────────────────────────────────
 let refreshTimer=30;
