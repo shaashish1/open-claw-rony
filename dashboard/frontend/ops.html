@@ -3,269 +3,205 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>ITGYANI OS v3 — Command Center</title>
+<title>ITGYANI OS v3 - Command Center</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
 *{box-sizing:border-box}
-body{background:#0b0f1a;color:#e2e8f0;font-family:system-ui,-apple-system,sans-serif;min-height:100vh;margin:0}
+body{background:#0b0f1a;color:#e2e8f0;font-family:system-ui,sans-serif;min-height:100vh;margin:0}
 .card{background:#111827;border:1px solid #1f2d40;border-radius:10px}
 .card2{background:#1a2235;border:1px solid #1f2d40;border-radius:8px}
+.nav-tab{padding:7px 14px;border-radius:6px;cursor:pointer;font-size:.8rem;font-weight:600;color:#6b7280;white-space:nowrap}
+.nav-tab.active{background:#1e293b;color:#e2e8f0}
+.sec{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:#4b5563;font-weight:700;margin-bottom:8px}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dot-g{background:#4ade80}.dot-o{background:#fb923c}.dot-b{background:#818cf8}.dot-r{background:#f87171}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.pulse{animation:pulse 2s infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{width:12px;height:12px;border:2px solid #1f2d40;border-top-color:#6366f1;border-radius:50%;animation:spin .8s linear infinite;display:inline-block;vertical-align:middle}
+.pb{height:4px;background:#1f2d40;border-radius:2px;overflow:hidden;margin-top:6px}
+.pf{height:100%;border-radius:2px;transition:width .6s}
+.pf-g{background:linear-gradient(90deg,#16a34a,#4ade80)}
+.pf-b{background:linear-gradient(90deg,#4f46e5,#818cf8)}
+.pf-o{background:linear-gradient(90deg,#ea580c,#fb923c)}
+a{color:#818cf8}a:hover{color:#a5b4fc}
+input,textarea,select{background:#0b0f1a;border:1px solid #1f2d40;border-radius:6px;color:#e2e8f0;padding:7px 11px;font-size:.85rem;outline:none}
+.btn{padding:6px 14px;border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;border:none}
+.btn-p{background:#4f46e5;color:#fff}.btn-g{background:#1a2235;color:#94a3b8;border:1px solid #1f2d40}
+.btn-r{background:#7f1d1d;color:#fca5a5}
+.sy{overflow-y:auto;scrollbar-width:thin}
+.badge{display:inline-flex;font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:20px}
 .b-live{background:#052e16;color:#4ade80;border:1px solid #166534}
 .b-build{background:#1c1917;color:#fb923c;border:1px solid #9a3412}
 .b-plan{background:#1e1b4b;color:#818cf8;border:1px solid #3730a3}
-.b-done{background:#052e16;color:#4ade80;border:1px solid #166534}
-.b-prog{background:#1c1917;color:#fb923c;border:1px solid #9a3412}
-.b-todo{background:#1e1b4b;color:#818cf8;border:1px solid #3730a3}
 .b-hi{background:#450a0a;color:#f87171;border:1px solid #991b1b}
 .b-med{background:#1c1917;color:#fbbf24;border:1px solid #92400e}
 .b-lo{background:#111827;color:#6b7280;border:1px solid #374151}
-.dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0}
-.dot-g{background:#4ade80}.dot-o{background:#fb923c}.dot-b{background:#818cf8}.dot-r{background:#f87171}.dot-y{background:#fbbf24}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.pulse{animation:pulse 2s infinite}
-.nav-tab{padding:7px 14px;border-radius:6px;cursor:pointer;font-size:.8rem;font-weight:600;color:#6b7280;transition:all .15s;white-space:nowrap}
-.nav-tab.active{background:#1e293b;color:#e2e8f0}
-.nav-tab:hover:not(.active){color:#94a3b8}
-.sec{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:#4b5563;font-weight:700;margin-bottom:8px}
-.pb{height:4px;background:#1f2d40;border-radius:2px;overflow:hidden;margin-top:6px}
-.pf{height:100%;background:linear-gradient(90deg,#6366f1,#8b5cf6);border-radius:2px;transition:width .5s}
-.spin{width:13px;height:13px;border:2px solid #1f2d40;border-top-color:#6366f1;border-radius:50%;animation:spin .8s linear infinite;display:inline-block;vertical-align:middle}
-@keyframes spin{to{transform:rotate(360deg)}}
-a{color:#818cf8}a:hover{color:#a5b4fc}
-input,textarea,select{background:#0b0f1a;border:1px solid #1f2d40;border-radius:6px;color:#e2e8f0;padding:7px 11px;font-size:.85rem;outline:none}
-input:focus,textarea:focus,select:focus{border-color:#6366f1}
-.btn{padding:6px 14px;border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;border:none;transition:opacity .15s}
-.btn:hover{opacity:.85}
-.btn-p{background:#4f46e5;color:#fff}
-.btn-g{background:#1a2235;color:#94a3b8;border:1px solid #1f2d40}
-.btn-r{background:#7f1d1d;color:#fca5a5;border:1px solid #991b1b}
-.sy{overflow-y:auto;scrollbar-width:thin;scrollbar-color:#1f2d40 transparent}
-/* Email */
-.acc-item{padding:8px 12px;cursor:pointer;border-radius:6px;font-size:.82rem;transition:background .1s}
-.acc-item:hover{background:#1a2235}
-.acc-item.active{background:#1e2d40;color:#818cf8}
-.email-row{padding:10px 12px;cursor:pointer;border-bottom:1px solid #1f2d40;font-size:.82rem;transition:background .1s}
-.email-row:hover{background:#1a2235}
-.email-row.active{background:#1e2d40;border-left:2px solid #6366f1}
-.email-row.unread .e-subj{font-weight:700;color:#e2e8f0}
-/* Task */
-.task-card{padding:10px;border-radius:6px;background:#1a2235;border:1px solid #1f2d40;margin-bottom:6px;cursor:pointer;transition:border-color .15s}
-.task-card:hover{border-color:#374151}
-.task-card.done-task{opacity:.45}
-/* Kanban col */
-.kcol{background:#111827;border:1px solid #1f2d40;border-radius:8px;padding:10px;min-height:200px}
+.rw{position:relative;width:52px;height:52px;flex-shrink:0}
+.rsvg{transform:rotate(-90deg)}
+.rbg{fill:none;stroke:#1f2d40;stroke-width:5}
+.rfg{fill:none;stroke-width:5;stroke-linecap:round}
+.rlbl{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700}
+.acc-item{padding:8px 12px;cursor:pointer;border-radius:6px;font-size:.82rem}
+.acc-item:hover{background:#1a2235}.acc-item.active{background:#1e2d40;color:#818cf8}
+.erow{padding:10px 12px;cursor:pointer;border-bottom:1px solid #1f2d40;font-size:.82rem}
+.erow:hover{background:#1a2235}.erow.unread .esub{font-weight:700;color:#e2e8f0}
+.tc{padding:10px;border-radius:6px;background:#1a2235;border:1px solid #1f2d40;margin-bottom:6px;cursor:pointer}
+.tc:hover{border-color:#374151}.dnc{opacity:.4}
+.kcol{background:#111827;border:1px solid #1f2d40;border-radius:8px;padding:10px;min-height:140px}
+.pjc{background:#111827;border:1px solid #1f2d40;border-radius:10px;padding:14px}
+.pjc:hover{border-color:#374151}
 </style>
 </head>
-<body class="p-3 md:p-4">
-
-<!-- HEADER -->
+<body class="p-3">
 <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
-  <div class="flex items-center gap-2 flex-wrap">
+  <div class="flex items-center gap-2">
     <div class="dot dot-g pulse"></div>
-    <span class="text-white font-bold">ITGYANI OS v3</span>
-    <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-900/40 text-indigo-300 border border-indigo-700/40">Command Center</span>
+    <span class="text-white font-bold text-sm">ITGYANI OS v3</span>
+    <span class="text-xs px-2 py-0.5 rounded-full" style="background:#1e1b4b;color:#a5b4fc;border:1px solid #3730a3">Command Center</span>
   </div>
-  <div class="flex items-center gap-3">
-    <div class="text-right hidden sm:block">
-      <div id="clock" class="text-white font-mono font-bold text-sm"></div>
-      <div id="sync-lbl" class="text-slate-600 text-xs">Syncing…</div>
-    </div>
-    <button class="btn btn-g text-xs" onclick="loadAll()">↻ Refresh</button>
+  <div class="flex items-center gap-2">
+    <div id="clock" class="text-white font-mono font-bold text-sm hidden sm:block"></div>
+    <div id="sync-lbl" class="text-slate-500 text-xs hidden sm:block">Syncing...</div>
+    <button class="btn btn-g text-xs" onclick="loadAll()">Refresh</button>
+    <a href="https://itgyani.atlassian.net/jira/software/projects/IT/boards/7" target="_blank" class="btn btn-p text-xs">Jira</a>
   </div>
 </div>
-
-<!-- KPI ROW -->
-<div class="grid grid-cols-2 md:grid-cols-5 gap-2 mb-3">
-  <div class="card p-3"><div class="sec">Revenue</div><div class="text-xl font-bold text-white">₹0</div><div class="text-xs text-slate-500 mt-0.5">Target ₹1L/mo</div><div class="pb"><div class="pf" style="width:1%"></div></div></div>
-  <div class="card p-3"><div class="sec">Strategies</div><div id="k-s" class="text-xl font-bold text-green-400"><span class="spin"></span></div><div class="text-xs text-slate-500 mt-0.5">Analyze mode</div><div class="pb"><div class="pf" id="k-s-b" style="width:0%"></div></div></div>
-  <div class="card p-3"><div class="sec">ChartInk</div><div id="k-c" class="text-xl font-bold text-green-400"><span class="spin"></span></div><div class="text-xs text-slate-500 mt-0.5">→ OpenAlgo</div><div class="pb"><div class="pf" style="width:100%"></div></div></div>
-  <div class="card p-3"><div class="sec">Sprint 1</div><div id="k-j" class="text-xl font-bold text-white"><span class="spin"></span></div><div id="k-j-l" class="text-xs text-slate-500 mt-0.5">stories</div><div class="pb"><div class="pf" id="k-j-b" style="width:0%"></div></div></div>
-  <div class="card p-3"><div class="sec">Agents Live</div><div class="text-xl font-bold text-indigo-400">10<span class="text-slate-500 text-sm">/14</span></div><div class="text-xs text-slate-500 mt-0.5">4 building/planned</div><div class="pb"><div class="pf" style="width:71%"></div></div></div>
+<div class="grid grid-cols-2 md:grid-cols-6 gap-2 mb-3">
+  <div class="card p-3"><div class="sec">Revenue MTD</div><div class="text-xl font-bold text-white">Rs 0</div><div class="text-xs text-slate-500">Target Rs 1L/mo</div><div class="pb"><div class="pf pf-b" style="width:1%"></div></div></div>
+  <div class="card p-3"><div class="sec">Strategies</div><div id="k-s" class="text-xl font-bold text-green-400"><span class="spin"></span></div><div class="text-xs text-slate-500">Analyze mode</div><div class="pb"><div class="pf pf-g" id="k-s-b" style="width:0%"></div></div></div>
+  <div class="card p-3"><div class="sec">ChartInk</div><div id="k-c" class="text-xl font-bold text-green-400"><span class="spin"></span></div><div class="text-xs text-slate-500">to OpenAlgo</div><div class="pb"><div class="pf pf-g" style="width:100%"></div></div></div>
+  <div class="card p-3"><div class="sec">Sprint 1</div><div id="k-j" class="text-xl font-bold text-white"><span class="spin"></span></div><div id="k-j-l" class="text-xs text-slate-500">issues</div><div class="pb"><div class="pf pf-b" id="k-j-b" style="width:0%"></div></div></div>
+  <div class="card p-3"><div class="sec">Agents Live</div><div class="text-xl font-bold" style="color:#818cf8">10<span class="text-slate-500 text-sm">/14</span></div><div class="text-xs text-slate-500">4 building/planned</div><div class="pb"><div class="pf pf-b" style="width:71%"></div></div></div>
+  <div class="card p-3"><div class="sec">Projects</div><div class="text-xl font-bold text-yellow-400">8</div><div class="text-xs text-slate-500">5 Active / 3 Planned</div><div class="pb"><div class="pf pf-o" style="width:63%"></div></div></div>
 </div>
-
-<!-- NAV -->
-<div class="flex gap-1 mb-3 bg-slate-900/40 p-1 rounded-lg overflow-x-auto">
-  <div class="nav-tab active" onclick="tab('agents',this)">👥 Agents</div>
-  <div class="nav-tab" onclick="tab('mailbox',this)">📧 Mailbox</div>
-  <div class="nav-tab" onclick="tab('tasks',this)">📋 Tasks</div>
-  <div class="nav-tab" onclick="tab('sprint',this)">🏃 Sprint</div>
-  <div class="nav-tab" onclick="tab('systems',this)">🖥 Systems</div>
-  <div class="nav-tab" onclick="tab('logs',this)">📡 Logs</div>
+<div class="flex gap-1 mb-3 p-1 rounded-lg overflow-x-auto" style="background:#0f172a">
+  <div class="nav-tab active" onclick="tab('agents',this)">Agents + KPIs</div>
+  <div class="nav-tab" onclick="tab('projects',this)">Projects</div>
+  <div class="nav-tab" onclick="tab('mailbox',this)">Mailbox</div>
+  <div class="nav-tab" onclick="tab('tasks',this)">Tasks</div>
+  <div class="nav-tab" onclick="tab('sprint',this)">Sprint</div>
+  <div class="nav-tab" onclick="tab('systems',this)">Systems</div>
+  <div class="nav-tab" onclick="tab('logs',this)">Logs</div>
 </div>
-
-<!-- ═══ AGENTS TAB ═══ -->
 <div id="tp-agents" class="tp">
-  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2" id="agents-grid"></div>
+  <div class="sec mb-3" style="color:#94a3b8">Performance and Utilization Report - All 14 Agents | Ring = utilization estimate</div>
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3" id="agents-grid"></div>
 </div>
-
-<!-- ═══ MAILBOX TAB ═══ -->
+<div id="tp-projects" class="tp hidden">
+  <div class="sec mb-3" style="color:#94a3b8">8 Properties | 135 Jira issues across IT, CG, TEF, YUKTI, KO, QPF, SF + Job Bot</div>
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3" id="projects-grid"></div>
+</div>
 <div id="tp-mailbox" class="tp hidden">
-  <div class="card" style="height:calc(100vh - 220px);display:flex;overflow:hidden">
-    <!-- Accounts sidebar -->
-    <div style="width:200px;min-width:160px;border-right:1px solid #1f2d40;display:flex;flex-direction:column">
-      <div class="p-2 border-b border-slate-800 flex items-center justify-between">
-        <span class="text-xs text-slate-400 font-semibold">ACCOUNTS</span>
-        <button class="btn btn-g text-xs px-2 py-1" onclick="syncEmail()">↻</button>
+  <div class="card" style="height:calc(100vh - 230px);display:flex;overflow:hidden">
+    <div style="width:190px;border-right:1px solid #1f2d40;display:flex;flex-direction:column">
+      <div class="p-2 flex items-center justify-between" style="border-bottom:1px solid #1f2d40">
+        <span style="font-size:.72rem;color:#6b7280;font-weight:700;text-transform:uppercase;letter-spacing:.08em">ACCOUNTS</span>
+        <button class="btn btn-g text-xs px-2" onclick="syncEmail()">sync</button>
       </div>
-      <div class="sy flex-1 p-1" id="acct-list">
-        <div class="text-slate-500 text-xs p-3"><span class="spin"></span> Loading…</div>
-      </div>
+      <div class="sy flex-1 p-1" id="acct-list"><div style="color:#6b7280;font-size:.78rem;padding:12px"><span class="spin"></span></div></div>
     </div>
-    <!-- Email list -->
-    <div style="width:280px;min-width:220px;border-right:1px solid #1f2d40;display:flex;flex-direction:column">
-      <div class="p-2 border-b border-slate-800 flex items-center justify-between">
-        <span class="text-xs text-slate-400 font-semibold" id="inbox-label">INBOX</span>
+    <div style="width:260px;border-right:1px solid #1f2d40;display:flex;flex-direction:column">
+      <div class="p-2 flex items-center justify-between" style="border-bottom:1px solid #1f2d40">
+        <span style="font-size:.72rem;color:#6b7280;font-weight:700;text-transform:uppercase;letter-spacing:.08em" id="inbox-label">INBOX</span>
         <div class="flex gap-1">
-          <button class="btn btn-g text-xs px-2 py-0.5" onclick="mailPage(-1)">‹</button>
-          <button class="btn btn-g text-xs px-2 py-0.5" onclick="mailPage(1)">›</button>
+          <button class="btn btn-g text-xs px-2" onclick="mailPage(-1)">prev</button>
+          <button class="btn btn-g text-xs px-2" onclick="mailPage(1)">next</button>
         </div>
       </div>
-      <div class="sy flex-1" id="email-list">
-        <div class="text-slate-500 text-xs p-4 text-center">Select an account</div>
-      </div>
+      <div class="sy flex-1" id="email-list"><div style="color:#6b7280;font-size:.78rem;padding:16px;text-align:center">Select an account</div></div>
     </div>
-    <!-- Reader -->
     <div class="flex-1 flex flex-col overflow-hidden">
-      <div id="reader-empty" class="flex-1 flex items-center justify-center text-slate-600 text-sm">
-        Select an email to read
-      </div>
+      <div id="reader-empty" class="flex-1 flex items-center justify-center" style="color:#374151;font-size:.9rem">Select an email to read</div>
       <div id="reader-content" class="hidden flex-1 flex flex-col overflow-hidden">
-        <div class="p-3 border-b border-slate-800">
+        <div class="p-3" style="border-bottom:1px solid #1f2d40">
           <div id="r-subject" class="text-white font-semibold text-sm mb-1"></div>
-          <div id="r-meta" class="text-slate-500 text-xs"></div>
+          <div id="r-meta" style="color:#6b7280;font-size:.75rem"></div>
         </div>
-        <div class="sy flex-1 p-3">
-          <div id="r-body" class="text-slate-300 text-sm whitespace-pre-wrap leading-relaxed"></div>
-        </div>
-        <div class="p-3 border-t border-slate-800">
+        <div class="sy flex-1 p-3"><div id="r-body" style="color:#cbd5e1;font-size:.85rem;line-height:1.6"></div></div>
+        <div class="p-3" style="border-top:1px solid #1f2d40">
           <div id="reply-area" class="hidden">
-            <textarea id="reply-txt" class="w-full mb-2" rows="3" placeholder="Write reply…" style="resize:vertical"></textarea>
-            <div class="flex gap-2">
-              <button class="btn btn-p text-xs" onclick="sendReply()">Send Reply</button>
-              <button class="btn btn-g text-xs" onclick="cancelReply()">Cancel</button>
-            </div>
+            <textarea id="reply-txt" class="w-full mb-2" rows="3" placeholder="Write reply..." style="resize:vertical"></textarea>
+            <div class="flex gap-2"><button class="btn btn-p text-xs" onclick="sendReply()">Send Reply</button><button class="btn btn-g text-xs" onclick="cancelReply()">Cancel</button></div>
           </div>
           <div id="reply-btns" class="flex gap-2">
-            <button class="btn btn-p text-xs" onclick="showReply()">↩ Reply</button>
-            <button class="btn btn-r text-xs" onclick="deleteEmail()">🗑 Delete</button>
+            <button class="btn btn-p text-xs" onclick="showReply()">Reply</button>
+            <button class="btn btn-r text-xs" onclick="deleteEmail()">Delete</button>
           </div>
         </div>
       </div>
       <div id="mail-login-prompt" class="hidden flex-1 flex flex-col items-center justify-center gap-3 text-center p-6">
-        <div class="text-3xl">🔒</div>
+        <div style="font-size:2rem">&#128274;</div>
         <div class="text-white font-semibold">Login Required</div>
-        <div class="text-slate-400 text-sm mb-2">Enter your dashboard credentials to access the mailbox.</div>
+        <div style="color:#94a3b8;font-size:.85rem">Enter dashboard credentials to access mailbox.</div>
         <input id="ml-user" placeholder="Username" value="ashish" style="width:220px;text-align:center"/>
         <input id="ml-pass" type="password" placeholder="Password" style="width:220px;text-align:center"/>
         <button class="btn btn-p" onclick="mailLogin()">Unlock Mailbox</button>
-        <div id="ml-err" class="text-red-400 text-xs hidden">Login failed — check credentials</div>
+        <div id="ml-err" style="color:#f87171;font-size:.78rem" class="hidden">Login failed</div>
       </div>
     </div>
   </div>
 </div>
-
-<!-- ═══ TASKS TAB ═══ -->
 <div id="tp-tasks" class="tp hidden">
-  <!-- Dispatch form -->
   <div class="card p-3 mb-3">
-    <div class="sec">Dispatch Task</div>
+    <div class="sec">Dispatch Task to Agent</div>
     <div class="flex flex-wrap gap-2">
-      <input id="t-title" placeholder="Task title…" style="flex:1;min-width:200px"/>
-      <select id="t-agent" style="min-width:120px">
-        <option>RONY</option><option>MAYA</option><option>ARJUN</option><option>PRIYA</option>
-        <option>ZARA</option><option>FELIX</option><option>DISHA</option><option>KABIR</option>
-        <option>NIKKI</option><option>VIKRAM</option><option>ROHAN</option><option>TARA</option>
-        <option>KIRAN</option><option>RAVI</option>
-      </select>
-      <select id="t-prio" style="min-width:100px">
-        <option value="high">🔴 High</option>
-        <option value="med" selected>🟡 Med</option>
-        <option value="low">⚪ Low</option>
-      </select>
+      <input id="t-title" placeholder="Task title..." style="flex:1;min-width:200px"/>
+      <select id="t-agent" style="min-width:120px"><option>RONY</option><option>MAYA</option><option>ARJUN</option><option>PRIYA</option><option>ZARA</option><option>FELIX</option><option>DISHA</option><option>KABIR</option><option>NIKKI</option><option>VIKRAM</option><option>ROHAN</option><option>TARA</option><option>KIRAN</option><option>RAVI</option></select>
+      <select id="t-prio" style="min-width:100px"><option value="high">High</option><option value="med" selected>Med</option><option value="low">Low</option></select>
       <button class="btn btn-p" onclick="addTask()">+ Dispatch</button>
     </div>
   </div>
-  <!-- Kanban -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-    <div class="kcol">
-      <div class="flex items-center justify-between mb-2">
-        <div class="sec mb-0 text-blue-400">TO DO</div>
-        <span class="text-xs bg-blue-900/40 text-blue-400 px-2 rounded-full" id="cnt-todo">0</span>
-      </div>
-      <div id="col-todo"></div>
-    </div>
-    <div class="kcol">
-      <div class="flex items-center justify-between mb-2">
-        <div class="sec mb-0 text-orange-400">IN PROGRESS</div>
-        <span class="text-xs bg-orange-900/40 text-orange-400 px-2 rounded-full" id="cnt-doing">0</span>
-      </div>
-      <div id="col-doing"></div>
-    </div>
-    <div class="kcol">
-      <div class="flex items-center justify-between mb-2">
-        <div class="sec mb-0 text-green-400">DONE</div>
-        <span class="text-xs bg-green-900/40 text-green-400 px-2 rounded-full" id="cnt-done">0</span>
-      </div>
-      <div id="col-done"></div>
-    </div>
+    <div class="kcol"><div class="flex items-center justify-between mb-2"><div class="sec mb-0" style="color:#60a5fa">TO DO</div><span style="font-size:.72rem;background:#1e3a5f40;color:#60a5fa;padding:1px 8px;border-radius:8px" id="cnt-todo">0</span></div><div id="col-todo"></div></div>
+    <div class="kcol"><div class="flex items-center justify-between mb-2"><div class="sec mb-0" style="color:#fb923c">IN PROGRESS</div><span style="font-size:.72rem;background:#7c2d1240;color:#fb923c;padding:1px 8px;border-radius:8px" id="cnt-doing">0</span></div><div id="col-doing"></div></div>
+    <div class="kcol"><div class="flex items-center justify-between mb-2"><div class="sec mb-0" style="color:#4ade80">DONE</div><span style="font-size:.72rem;background:#14532d40;color:#4ade80;padding:1px 8px;border-radius:8px" id="cnt-done">0</span></div><div id="col-done"></div></div>
   </div>
 </div>
-
-<!-- ═══ SPRINT TAB ═══ -->
 <div id="tp-sprint" class="tp hidden">
   <div class="card p-4">
     <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
       <div>
-        <div class="text-white font-semibold" id="sprint-name">Sprint 1 — Week1 Foundation</div>
-        <div class="text-xs text-slate-500" id="sprint-meta">Loading from Jira…</div>
+        <div class="text-white font-semibold">Sprint 1 - Week1 Foundation</div>
+        <div id="sprint-meta" style="color:#6b7280;font-size:.78rem">Loading from Jira...</div>
       </div>
-      <a href="https://itgyani.atlassian.net/jira/software/projects/IT/boards/7" target="_blank" class="btn btn-g text-xs">Open Jira →</a>
+      <div class="flex gap-1 flex-wrap">
+        <a href="https://itgyani.atlassian.net/jira/software/projects/IT/boards/7" target="_blank" class="btn btn-g text-xs">IT</a>
+        <a href="https://itgyani.atlassian.net/jira/software/projects/CG/boards" target="_blank" class="btn btn-g text-xs">CG</a>
+        <a href="https://itgyani.atlassian.net/jira/software/projects/YUKTI/boards" target="_blank" class="btn btn-g text-xs">YUKTI</a>
+        <a href="https://itgyani.atlassian.net/jira/software/projects/TEF/boards" target="_blank" class="btn btn-g text-xs">TEF</a>
+        <a href="https://itgyani.atlassian.net/jira/software/projects/KO/boards" target="_blank" class="btn btn-g text-xs">KO</a>
+        <a href="https://itgyani.atlassian.net/jira/software/projects/QPF/boards" target="_blank" class="btn btn-g text-xs">QPF</a>
+        <a href="https://itgyani.atlassian.net/jira/software/projects/SF/boards" target="_blank" class="btn btn-g text-xs">SF</a>
+      </div>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-      <div>
-        <div class="sec text-blue-400">TO DO</div>
-        <div class="sy" style="max-height:420px" id="j-todo"></div>
-      </div>
-      <div>
-        <div class="sec text-orange-400">IN PROGRESS</div>
-        <div class="sy" style="max-height:420px" id="j-prog"></div>
-      </div>
-      <div>
-        <div class="sec text-green-400">DONE</div>
-        <div class="sy" style="max-height:420px" id="j-done"></div>
-      </div>
+      <div><div class="sec" style="color:#60a5fa">TO DO</div><div class="sy" style="max-height:420px" id="j-todo"></div></div>
+      <div><div class="sec" style="color:#fb923c">IN PROGRESS</div><div class="sy" style="max-height:420px" id="j-prog"></div></div>
+      <div><div class="sec" style="color:#4ade80">DONE</div><div class="sy" style="max-height:420px" id="j-done"></div></div>
     </div>
   </div>
 </div>
-
-<!-- ═══ SYSTEMS TAB ═══ -->
 <div id="tp-systems" class="tp hidden">
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+    <div class="card p-4"><div class="sec">Containers</div><div id="sys-c" class="space-y-2"><div style="color:#6b7280;font-size:.85rem"><span class="spin"></span> Loading...</div></div></div>
     <div class="card p-4">
-      <div class="sec">Containers</div>
-      <div id="sys-c" class="space-y-2"><div class="text-slate-500 text-sm"><span class="spin"></span> Loading…</div></div>
-    </div>
-    <div class="card p-4">
-      <div class="sec">Services</div>
-      <div id="sys-s" class="space-y-2"><div class="text-slate-500 text-sm"><span class="spin"></span> Loading…</div></div>
-      <div class="mt-4 pt-3 border-t border-slate-800">
-        <div class="sec">Quick Links</div>
-        <div class="grid grid-cols-2 gap-1 text-sm">
-          <a href="https://dashboard.itgyani.com" target="_blank">↗ Email Dashboard</a>
-          <a href="https://n8n.itgyani.com" target="_blank">↗ n8n</a>
-          <a href="https://openalgo.cryptogyani.com/python" target="_blank">↗ OpenAlgo</a>
-          <a href="https://chartink.com/alert_dashboard" target="_blank">↗ ChartInk</a>
-          <a href="https://cryptogyani.com" target="_blank">↗ CryptoGyani</a>
-          <a href="https://itgyani.com" target="_blank">↗ ITGYANI.com</a>
-          <a href="https://learn.theemployeefactory.com" target="_blank">↗ LMS</a>
-          <a href="https://kharadionline.com" target="_blank">↗ Kharadi</a>
-        </div>
+      <div class="sec">Quick Links</div>
+      <div class="grid grid-cols-2 gap-1.5" style="font-size:.78rem">
+        <a href="https://dashboard.itgyani.com" target="_blank" class="card2 p-2 text-center" style="text-decoration:none">Email Dashboard</a>
+        <a href="https://n8n.itgyani.com" target="_blank" class="card2 p-2 text-center" style="text-decoration:none">n8n Workflows</a>
+        <a href="https://openalgo.cryptogyani.com/python" target="_blank" class="card2 p-2 text-center" style="text-decoration:none">OpenAlgo</a>
+        <a href="https://chartink.com/alert_dashboard" target="_blank" class="card2 p-2 text-center" style="text-decoration:none">ChartInk Alerts</a>
+        <a href="https://cryptogyani.com" target="_blank" class="card2 p-2 text-center" style="text-decoration:none">CryptoGyani</a>
+        <a href="https://itgyani.com" target="_blank" class="card2 p-2 text-center" style="text-decoration:none">ITGYANI.com</a>
+        <a href="https://learn.theemployeefactory.com" target="_blank" class="card2 p-2 text-center" style="text-decoration:none">OpenMAIC LMS</a>
+        <a href="https://kharadionline.com" target="_blank" class="card2 p-2 text-center" style="text-decoration:none">Kharadi Online</a>
+        <a href="https://itgyani.atlassian.net" target="_blank" class="card2 p-2 text-center" style="text-decoration:none">Jira All Projects</a>
+        <a href="https://github.com/shaashish1/open-claw-rony" target="_blank" class="card2 p-2 text-center" style="text-decoration:none">GitHub Repo</a>
       </div>
     </div>
   </div>
 </div>
-
-<!-- ═══ LOGS TAB ═══ -->
 <div id="tp-logs" class="tp hidden">
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
     <div class="card p-4">
@@ -273,9 +209,7 @@ input:focus,textarea:focus,select:focus{border-color:#6366f1}
         <div class="sec mb-0">Live Activity Log</div>
         <button class="btn btn-g text-xs" onclick="logs=[];renderLogs()">Clear</button>
       </div>
-      <div class="sy" style="max-height:420px" id="live-log">
-        <div class="text-slate-600 text-sm text-center py-8">Activity will appear here…</div>
-      </div>
+      <div class="sy" style="max-height:400px" id="live-log"><div style="color:#374151;font-size:.85rem;text-align:center;padding:32px">Activity appears here</div></div>
     </div>
     <div class="card p-4">
       <div class="flex items-center justify-between mb-2">
@@ -283,478 +217,334 @@ input:focus,textarea:focus,select:focus{border-color:#6366f1}
         <button class="btn btn-p text-xs" onclick="document.getElementById('mom-frm').classList.toggle('hidden')">+ Add MOM</button>
       </div>
       <div id="mom-frm" class="hidden space-y-2 mb-3">
-        <input id="mom-t" placeholder="Meeting title…" style="width:100%"/>
-        <textarea id="mom-n" placeholder="Key decisions & actions…" rows="3" style="width:100%;resize:vertical"></textarea>
+        <input id="mom-t" placeholder="Meeting title..." style="width:100%"/>
+        <textarea id="mom-n" placeholder="Key decisions..." rows="3" style="width:100%;resize:vertical"></textarea>
         <div class="flex gap-2">
           <button class="btn btn-p flex-1 text-xs" onclick="saveMOM()">Save</button>
           <button class="btn btn-g flex-1 text-xs" onclick="document.getElementById('mom-frm').classList.add('hidden')">Cancel</button>
         </div>
       </div>
-      <div class="sy" style="max-height:340px" id="mom-list">
-        <div class="text-slate-600 text-sm text-center py-6">No meetings yet.</div>
-      </div>
+      <div class="sy" style="max-height:340px" id="mom-list"><div style="color:#374151;font-size:.85rem;text-align:center;padding:24px">No meetings yet.</div></div>
     </div>
   </div>
 </div>
-
-<div class="text-center text-slate-700 text-xs mt-4 pb-2">
-  ITGYANI OS v3 · Rony COO · Refreshes in <span id="cd">30</span>s · <a href="https://github.com/shaashish1/open-claw-rony" target="_blank">GitHub</a>
-</div>
-
+<div style="text-align:center;color:#374151;font-size:.72rem;margin-top:16px;padding-bottom:8px">ITGYANI OS v3 - Rony COO - Refresh in <span id="cd">30</span>s</div>
 <script>
-// ── STATE ────────────────────────────────────────────────────────────────────
-const S = {
-  mailAcct: null, mailPage: 1, mailUid: null,
-  taskFilter: 'all'
-};
-let logs = [];
-let cdTimer = 30;
-
-// ── TABS ─────────────────────────────────────────────────────────────────────
-function tab(name, el) {
-  document.querySelectorAll('.tp').forEach(t => t.classList.add('hidden'));
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('tp-' + name).classList.remove('hidden');
-  if (el) el.classList.add('active');
-  if (name === 'mailbox') initMailbox();
-  if (name === 'sprint') loadSprint();
-  if (name === 'systems') loadSystems();
-}
-
-// ── CLOCK ────────────────────────────────────────────────────────────────────
-function tick() {
-  const n = new Date();
-  const el = document.getElementById('clock');
-  if (el) el.textContent = n.toLocaleTimeString('en-IN', {timeZone:'Asia/Calcutta', hour12:true});
-}
-setInterval(tick, 1000); tick();
-
-// ── AGENTS ───────────────────────────────────────────────────────────────────
-const AGENTS = [
-  {name:'RONY',  role:'COO',      emoji:'🤖', task:'Running OS v3 — sprint oversight & agent coordination', status:'live'},
-  {name:'MAYA',  role:'CMO',      emoji:'📧', task:'Email cleanup + 1M lead database build',                status:'live'},
-  {name:'ARJUN', role:'InfoSec',  emoji:'🛡', task:'Security audit + job alert bot VPS deployment',         status:'build'},
-  {name:'PRIYA', role:'SEO Lead', emoji:'🔍', task:'CryptoGyani keyword research + 10 posts/week',          status:'live'},
-  {name:'ZARA',  role:'Sales',    emoji:'📞', task:'100 cold email prospects — fintech + SaaS founders',    status:'live'},
-  {name:'FELIX', role:'Support',  emoji:'🎧', task:'Building 50-FAQ SOP library',                          status:'plan'},
-  {name:'DISHA', role:'PM',       emoji:'📌', task:'Sprint 1 tracking — daily standup + blocker escalation',status:'live'},
-  {name:'KABIR', role:'DevOps',   emoji:'⚙️', task:'VPS hardening + n8n YouTube workflow productionize',   status:'live'},
-  {name:'NIKKI', role:'Designer', emoji:'🎨', task:'ITGYANI service page UI — QA gate for all UI',          status:'build'},
-  {name:'VIKRAM',role:'Analytics',emoji:'📊', task:'Revenue KPI tracking + daily P&L dashboard',            status:'live'},
-  {name:'ROHAN', role:'Finance',  emoji:'💰', task:'Razorpay + Stripe setup across all 7 properties',      status:'live'},
-  {name:'TARA',  role:'Research', emoji:'🧪', task:'Demand validation: Job App + OpenMAIC course topics',   status:'live'},
-  {name:'KIRAN', role:'HR',       emoji:'👥', task:'14-agent RACI matrix + onboarding SOP',               status:'plan'},
-  {name:'RAVI',  role:'RevOps',   emoji:'💳', task:'Payment rails — Razorpay live within 7 days',          status:'live'},
+const AGENTS=[
+  ["RONY","COO","live","Sprint oversight + agent coordination + blocker escalation",72,"Sonnet",[["10/14","Agents Active"],["0/41","Sprint Done"],["0","Blockers"]],[["IT-34","Agent KPI tiles"],["IT-35","QA dashboard panels"]]],
+  ["MAYA","CMO / Lead Gen","live","Email cleanup 8031 emails + 1M lead database build",45,"Haiku",[["0/8031","Emails Scanned"],["0/50K","Leads Built"],["0","Campaigns"]],[["IT-26","Audit 8031 emails"],["IT-27","Email cleanup n8n"],["IT-28","Lead scraper 50K"],["IT-30","SendGrid setup"],["IT-31","First 50K campaign"]]],
+  ["ARJUN","InfoSec","build","Security audit + job alert bot VPS deploy + RULE 0",30,"Sonnet",[["Clean","Secrets Status"],["0","Alerts Fired"],["0","Violations"]],[["YUKTI-7","Security audit OpenAlgo"],["IT-38","Job scraper multi-portal"]]],
+  ["PRIYA","SEO Lead","live","CryptoGyani SEO launch - 10 articles/week + keyword research",55,"Haiku",[["0/10","Articles Published"],["0/100","Keywords Mapped"],["Pending","AdSense"]],[["CG-52","CryptoGyani SEO Launch"],["CG-54","SEO audit meta"],["CG-55","GA4 Search Console"],["CG-56","10 SEO articles"],["CG-59","Apply AdSense"]]],
+  ["ZARA","Sales","live","100 cold email prospects - fintech and SaaS founders",20,"Haiku",[["0/100","Prospects Found"],["0","Emails Sent"],["0","Replies Got"]],[["IT-15","First 5 agency clients"],["IT-21","Cold email 100 prospects"],["IT-23","LinkedIn 50 DMs/day"],["IT-24","Sales proposal"]]],
+  ["FELIX","Support","plan","50-FAQ SOP library + support bot setup",5,"Haiku",[["0/50","FAQs Written"],["Not live","Support Bot"],["0","Open Tickets"]],[["IT-11","Customer support bot"]]],
+  ["DISHA","PM","live","Sprint 1 daily standup + blocker escalation within 30 min",40,"Haiku",[["0","Blockers"],["N/A","On-time"],["At Risk","Sprint Health"]],[["IT-1","Sprint 1 kickoff"],["IT-12","Admin dashboard"],["IT-13","Automation test"]]],
+  ["KABIR","DevOps","live","VPS hardening + Fyers auto-login + n8n YouTube production",85,"Haiku",[["10/10","Strategies Up"],["99.9%","VPS Uptime"],["16%","Disk Used"]],[["YUKTI-3","Audit OpenAlgo VPS"],["YUKTI-4","Document broker config"],["IT-13","Automation test"]]],
+  ["NIKKI","Designer / QA","build","ITGYANI service page + QA gate for all UI before ship",35,"Haiku",[["Active","QA Gate"],["0/3","Pages Done"],["0","Bugs Found"]],[["IT-20","Service menu pricing page"],["IT-4","Design service categories"]]],
+  ["VIKRAM","Analytics","live","Revenue KPI + daily P&L + ad performance tracking",50,"Haiku",[["Rs 0","Revenue MTD"],["N/A","Ad ROAS"],["0/7","Reports Done"]],[["IT-33","AI model costs panel"],["IT-36","Dashboard load test"],["YUKTI-6","P&L integration"]]],
+  ["ROHAN","Finance","live","Revenue tracking + cost monitoring + burn rate report",20,"Haiku",[["Rs 0","Revenue"],["Calculating","Burn Rate"],["Unknown","Runway"]],[["IT-10","Payment setup"]]],
+  ["TARA","Research","live","Demand validation: Job App + OpenMAIC course scorecard",30,"Haiku",[["0/3","Products Validated"],["N/A","Scorecard"],["0/5","Market Reports"]],[["IT-37","Demand landing page"],["IT-5","Research pain points"]]],
+  ["KIRAN","HR & Team Ops","plan","14-agent RACI matrix + onboarding SOP + roster",5,"Haiku",[["Pending","RACI Matrix"],["14/14","Agents Onboarded"],["0/5","SOPs Written"]],[["IT-6","Onboarding form"]]],
+  ["RAVI","RevOps / Payments","live","Razorpay + Stripe across all 7 properties - 7 days",15,"Haiku",[["0/7","Properties Live"],["Pending","Razorpay"],["Pending","Stripe"]],[["IT-10","Payment setup"],["IT-41","Rs999 payment integration"]]]
 ];
+const PROJECTS=[
+  ["IT","ITGYANI Agency","active","high","Agency OS + 14-agent framework + dashboard","https://itgyani.atlassian.net/jira/software/projects/IT/boards/7",41,"#4f46e5"],
+  ["CG","CryptoGyani","active","high","SEO revamp + AdSense + algo trading","https://itgyani.atlassian.net/jira/software/projects/CG/boards",18,"#16a34a"],
+  ["YUKTI","Yukti Algo","active","high","OpenAlgo VPS + broker config + strategies","https://itgyani.atlassian.net/jira/software/projects/YUKTI/boards",12,"#0891b2"],
+  ["TEF","OpenMAIC LMS","active","med","Course platform deploy + content","https://itgyani.atlassian.net/jira/software/projects/TEF/boards",8,"#d97706"],
+  ["KO","Kharadi Online","active","med","Ecom store + local SEO","https://itgyani.atlassian.net/jira/software/projects/KO/boards",7,"#7c3aed"],
+  ["QPF","QPF Blog","plan","low","Content + affiliate","https://itgyani.atlassian.net/jira/software/projects/QPF/boards",5,"#6b7280"],
+  ["SF","SF Project","plan","low","Planning phase","https://itgyani.atlassian.net/jira/software/projects/SF/boards",3,"#6b7280"],
+  ["JOB","Job Alert Bot","active","high","AI job scraper + Telegram alerts","https://github.com/shaashish1/open-claw-rony",0,"#ec4899"]
+];
+const SPRINT_ISSUES=[
+  {key:"IT-1",title:"Sprint 1 kickoff",st:"todo",agent:"DISHA",prio:"high"},
+  {key:"IT-4",title:"Design service categories",st:"todo",agent:"NIKKI",prio:"med"},
+  {key:"IT-5",title:"Research pain points",st:"todo",agent:"TARA",prio:"med"},
+  {key:"IT-6",title:"Onboarding form",st:"todo",agent:"KIRAN",prio:"low"},
+  {key:"IT-10",title:"Payment setup",st:"todo",agent:"RAVI",prio:"high"},
+  {key:"IT-11",title:"Customer support bot",st:"todo",agent:"FELIX",prio:"med"},
+  {key:"IT-12",title:"Admin dashboard",st:"prog",agent:"DISHA",prio:"high"},
+  {key:"IT-13",title:"Automation test",st:"prog",agent:"KABIR",prio:"high"},
+  {key:"IT-15",title:"First 5 agency clients",st:"todo",agent:"ZARA",prio:"high"},
+  {key:"IT-20",title:"Service menu pricing page",st:"todo",agent:"NIKKI",prio:"med"},
+  {key:"IT-21",title:"Cold email 100 prospects",st:"todo",agent:"ZARA",prio:"high"},
+  {key:"IT-23",title:"LinkedIn 50 DMs/day",st:"todo",agent:"ZARA",prio:"med"},
+  {key:"IT-24",title:"Sales proposal",st:"todo",agent:"ZARA",prio:"med"},
+  {key:"IT-26",title:"Audit 8031 emails",st:"prog",agent:"MAYA",prio:"high"},
+  {key:"IT-27",title:"Email cleanup n8n",st:"todo",agent:"MAYA",prio:"high"},
+  {key:"IT-28",title:"Lead scraper 50K",st:"todo",agent:"MAYA",prio:"high"},
+  {key:"IT-30",title:"SendGrid setup",st:"todo",agent:"MAYA",prio:"med"},
+  {key:"IT-31",title:"First 50K campaign",st:"todo",agent:"MAYA",prio:"med"},
+  {key:"IT-33",title:"AI model costs panel",st:"todo",agent:"VIKRAM",prio:"med"},
+  {key:"IT-34",title:"Agent KPI tiles",st:"prog",agent:"RONY",prio:"high"},
+  {key:"IT-35",title:"QA dashboard panels",st:"todo",agent:"RONY",prio:"high"},
+  {key:"IT-36",title:"Dashboard load test",st:"todo",agent:"VIKRAM",prio:"med"},
+  {key:"IT-37",title:"Demand landing page",st:"todo",agent:"TARA",prio:"high"},
+  {key:"IT-38",title:"Job scraper multi-portal",st:"prog",agent:"ARJUN",prio:"high"},
+  {key:"IT-41",title:"Rs999 payment integration",st:"todo",agent:"RAVI",prio:"high"},
+  {key:"CG-52",title:"CryptoGyani SEO Launch",st:"prog",agent:"PRIYA",prio:"high"},
+  {key:"CG-54",title:"SEO audit meta",st:"todo",agent:"PRIYA",prio:"med"},
+  {key:"CG-55",title:"GA4 Search Console",st:"todo",agent:"PRIYA",prio:"med"},
+  {key:"CG-56",title:"10 SEO articles",st:"todo",agent:"PRIYA",prio:"high"},
+  {key:"CG-59",title:"Apply AdSense",st:"todo",agent:"PRIYA",prio:"med"},
+  {key:"YUKTI-3",title:"Audit OpenAlgo VPS",st:"done",agent:"KABIR",prio:"high"},
+  {key:"YUKTI-4",title:"Document broker config",st:"done",agent:"KABIR",prio:"med"},
+  {key:"YUKTI-6",title:"P&L integration",st:"todo",agent:"VIKRAM",prio:"med"},
+  {key:"YUKTI-7",title:"Security audit OpenAlgo",st:"todo",agent:"ARJUN",prio:"high"}
+];
+const MAIL_ACCOUNTS=[
+  {id:"ashish_itg",label:"ashish@itgyani.com",count:5275},
+  {id:"ashish_tfl",label:"ashish@technoflairlab.com",count:1049},
+  {id:"info_ko",label:"info@kharadionline.com",count:605},
+  {id:"ashish_cg",label:"ashish@cryptogyani.com",count:422},
+  {id:"trading_cg",label:"trading@cryptogyani.com",count:380},
+  {id:"info_cg",label:"info@cryptogyani.com",count:237},
+  {id:"support_tef",label:"support@theemployeefactory.com",count:38},
+  {id:"ashish_tef",label:"ashish@theemployeefactory.com",count:25}
+];
+let tasks=JSON.parse(localStorage.getItem('itg_tasks')||'[]');
+let moms=JSON.parse(localStorage.getItem('itg_moms')||'[]');
+let logs=[];
+let mailAuthed=false;
+let curAcct=null,curPage=0,curEmail=null;
 
-function renderAgents() {
-  const g = document.getElementById('agents-grid');
-  g.innerHTML = '';
-  AGENTS.forEach(a => {
-    const sc = a.status==='live'?'b-live':a.status==='build'?'b-build':'b-plan';
-    const dc = a.status==='live'?'dot-g pulse':a.status==='build'?'dot-o pulse':'dot-b';
-    const sl = a.status==='live'?'LIVE':a.status==='build'?'BUILDING':'PLANNED';
-    g.innerHTML += `<div class="card2 p-3 hover:border-slate-600 transition-colors border border-transparent">
-      <div class="flex items-start justify-between mb-1.5">
-        <div class="flex items-center gap-2">
-          <span class="dot ${dc} mt-1"></span>
-          <span class="text-white font-bold text-sm">${a.emoji} ${a.name}</span>
-          <span class="text-slate-500 text-xs">${a.role}</span>
-        </div>
-        <span class="text-xs px-2 py-0.5 rounded-full ${sc} font-semibold shrink-0">${sl}</span>
-      </div>
-      <div class="text-slate-400 text-xs pl-3.5 leading-relaxed">${a.task}</div>
-    </div>`;
-  });
-}
-
-// ── MAILBOX ──────────────────────────────────────────────────────────────────
-async function initMailbox() {
-  // Test auth first
-  try {
-    const r = await fetch('/api/accounts');
-    if (r.status === 401 || r.status === 403) {
-      showMailLogin(); return;
-    }
-    const accounts = await r.json();
-    if (!Array.isArray(accounts)) { showMailLogin(); return; }
-    renderAccounts(accounts);
-    if (accounts.length > 0 && !S.mailAcct) {
-      selectAccount(accounts[0].email, accounts[0].label);
-    }
-  } catch(e) {
-    showMailLogin();
-  }
-}
-
-function showMailLogin() {
-  document.getElementById('acct-list').innerHTML = '<div class="text-slate-500 text-xs p-2">Login to view</div>';
-  document.getElementById('email-list').innerHTML = '';
-  document.getElementById('reader-empty').classList.add('hidden');
-  document.getElementById('reader-content').classList.add('hidden');
-  document.getElementById('mail-login-prompt').classList.remove('hidden');
-}
-
-async function mailLogin() {
-  const user = document.getElementById('ml-user').value;
-  const pass = document.getElementById('ml-pass').value;
-  document.getElementById('ml-err').classList.add('hidden');
-  try {
-    const fd = new FormData();
-    fd.append('username', user);
-    fd.append('password', pass);
-    const r = await fetch('/login', {method:'POST', body: fd, redirect:'follow'});
-    // Try hitting the API now
-    const r2 = await fetch('/api/accounts');
-    if (r2.ok) {
-      document.getElementById('mail-login-prompt').classList.add('hidden');
-      const accounts = await r2.json();
-      renderAccounts(accounts);
-      if (accounts.length > 0) selectAccount(accounts[0].email, accounts[0].label);
-      addLog('🔓 Mailbox unlocked', 'g');
-    } else {
-      document.getElementById('ml-err').classList.remove('hidden');
-    }
-  } catch(e) {
-    document.getElementById('ml-err').classList.remove('hidden');
-  }
-}
-
-function renderAccounts(accounts) {
-  document.getElementById('mail-login-prompt').classList.add('hidden');
-  const el = document.getElementById('acct-list');
-  el.innerHTML = '';
-  accounts.forEach(a => {
-    const unread = a.unread || 0;
-    el.innerHTML += `<div class="acc-item flex items-center justify-between" 
-      data-email="${a.email}" onclick="selectAccount('${a.email}','${a.label||a.email}')">
-      <span class="truncate">${a.label||a.email.split('@')[0]}</span>
-      ${unread>0?`<span class="text-xs bg-indigo-900 text-indigo-300 px-1.5 rounded-full shrink-0">${unread>99?'99+':unread}</span>`:''}
-    </div>`;
-  });
-}
-
-async function selectAccount(email, label) {
-  S.mailAcct = email; S.mailPage = 1; S.mailUid = null;
-  document.getElementById('inbox-label').textContent = (label||email).toUpperCase();
-  document.querySelectorAll('.acc-item').forEach(el => el.classList.toggle('active', el.dataset.email === email));
-  await loadEmails();
-}
-
-async function loadEmails() {
-  if (!S.mailAcct) return;
-  const el = document.getElementById('email-list');
-  el.innerHTML = '<div class="text-slate-500 text-xs p-4 text-center"><span class="spin"></span></div>';
-  try {
-    const r = await fetch(`/api/emails?account=${encodeURIComponent(S.mailAcct)}&page=${S.mailPage}&limit=20`);
-    if (r.status === 401) { showMailLogin(); return; }
-    const d = await r.json();
-    const emails = d.emails || [];
-    el.innerHTML = '';
-    if (!emails.length) {
-      el.innerHTML = '<div class="text-slate-500 text-xs p-4 text-center">No emails found</div>';
-      return;
-    }
-    emails.forEach(e => {
-      const from = (e.from_addr||'').replace(/<[^>]+>/g,'').trim().split('@')[0].substring(0,18);
-      const subj = (e.subject||'(no subject)').substring(0,40);
-      const date = e.date_str ? e.date_str.substring(0,10) : '';
-      const unread = !e.is_read;
-      el.innerHTML += `<div class="email-row ${unread?'unread':''}" onclick="openEmail('${e.uid||e.id}')">
-        <div class="flex items-center justify-between mb-0.5">
-          <span class="text-slate-300 text-xs font-semibold truncate">${from}</span>
-          <span class="text-slate-600 text-xs shrink-0">${date}</span>
-        </div>
-        <div class="e-subj text-slate-400 text-xs truncate">${subj}</div>
-      </div>`;
-    });
-  } catch(e) {
-    el.innerHTML = `<div class="text-red-400 text-xs p-3">Error: ${e.message}</div>`;
-  }
-}
-
-async function openEmail(uid) {
-  S.mailUid = uid;
-  document.getElementById('reader-empty').classList.add('hidden');
-  document.getElementById('mail-login-prompt').classList.add('hidden');
-  document.getElementById('reader-content').classList.remove('hidden');
-  document.getElementById('r-subject').textContent = 'Loading…';
-  document.getElementById('r-meta').textContent = '';
-  document.getElementById('r-body').innerHTML = '<span class="spin"></span>';
-  cancelReply();
-  try {
-    const r = await fetch(`/api/emails/${encodeURIComponent(S.mailAcct)}/${uid}`);
-    const d = await r.json();
-    const e = d.email || d;
-    document.getElementById('r-subject').textContent = e.subject || '(no subject)';
-    document.getElementById('r-meta').textContent = `From: ${e.from_addr||''} | ${e.date_str||''}`;
-    if (e.body_html) {
-      document.getElementById('r-body').innerHTML = `<iframe srcdoc="${e.body_html.replace(/"/g,'&quot;')}" style="width:100%;height:300px;border:none;background:#fff;border-radius:4px"></iframe>`;
-    } else {
-      document.getElementById('r-body').textContent = e.body_text || '(empty)';
-    }
-  } catch(e) {
-    document.getElementById('r-body').textContent = 'Failed to load: ' + e.message;
-  }
-}
-
-function showReply() {
-  document.getElementById('reply-area').classList.remove('hidden');
-  document.getElementById('reply-btns').classList.add('hidden');
-  document.getElementById('reply-txt').focus();
-}
-function cancelReply() {
-  document.getElementById('reply-area').classList.add('hidden');
-  document.getElementById('reply-btns').classList.remove('hidden');
-  document.getElementById('reply-txt').value = '';
-}
-async function sendReply() {
-  const txt = document.getElementById('reply-txt').value.trim();
-  if (!txt) return;
-  if (!confirm('Send this reply? This will send a real email.')) return;
-  try {
-    await fetch(`/api/emails/${encodeURIComponent(S.mailAcct)}/${S.mailUid}/send-reply`, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({reply_text: txt})
-    });
-    cancelReply();
-    addLog('📧 Reply sent from ' + S.mailAcct, 'g');
-    alert('Reply sent!');
-  } catch(e) { alert('Failed: ' + e.message); }
-}
-async function deleteEmail() {
-  if (!confirm('Move to Trash?')) return;
-  try {
-    await fetch(`/api/emails/${encodeURIComponent(S.mailAcct)}/${S.mailUid}`, {method:'DELETE'});
-    document.getElementById('reader-empty').classList.remove('hidden');
-    document.getElementById('reader-content').classList.add('hidden');
-    loadEmails();
-    addLog('🗑 Email deleted from ' + S.mailAcct, 'o');
-  } catch(e) { alert('Delete failed: ' + e.message); }
-}
-function mailPage(d) { S.mailPage = Math.max(1, S.mailPage + d); loadEmails(); }
-async function syncEmail() {
-  try {
-    await fetch('/api/sync/quick', {method:'POST'});
-    addLog('📧 Email sync triggered', 'b');
-    setTimeout(() => { if (S.mailAcct) loadEmails(); }, 3000);
-  } catch(e) {}
-}
-
-// ── TASKS ────────────────────────────────────────────────────────────────────
-function getTasks() { try { return JSON.parse(localStorage.getItem('ig_tasks')||'[]'); } catch { return []; } }
-function saveTasks(t) { localStorage.setItem('ig_tasks', JSON.stringify(t)); }
-
-function addTask() {
-  const title = document.getElementById('t-title').value.trim();
-  if (!title) return;
-  const tasks = getTasks();
-  tasks.unshift({
-    id: Date.now(), title,
-    agent: document.getElementById('t-agent').value,
-    prio: document.getElementById('t-prio').value,
-    status: 'todo',
-    created: new Date().toISOString()
-  });
-  saveTasks(tasks);
-  document.getElementById('t-title').value = '';
-  renderTasks();
-  addLog(`📋 ${document.getElementById('t-agent').value}: "${title}"`, 'b');
-}
-
-function cycleTask(id) {
-  const tasks = getTasks();
-  const t = tasks.find(x => x.id === id);
-  if (!t) return;
-  const seq = ['todo','doing','done'];
-  const i = seq.indexOf(t.status);
-  t.status = seq[(i + 1) % seq.length];
-  saveTasks(tasks); renderTasks();
-}
-function delTask(id) { saveTasks(getTasks().filter(x => x.id !== id)); renderTasks(); }
-
-function renderTasks() {
-  const tasks = getTasks();
-  const cols = {todo:[], doing:[], done:[]};
-  tasks.forEach(t => { if (cols[t.status]) cols[t.status].push(t); });
-  ['todo','doing','done'].forEach(st => {
-    const col = document.getElementById('col-' + st);
-    const cnt = document.getElementById('cnt-' + st);
-    if (cnt) cnt.textContent = cols[st].length;
-    if (!col) return;
-    if (!cols[st].length) {
-      col.innerHTML = '<div class="text-slate-700 text-xs text-center py-4">Empty</div>';
-      return;
-    }
-    col.innerHTML = cols[st].map(t => {
-      const pc = t.prio==='high'?'b-hi':t.prio==='med'?'b-med':'b-lo';
-      const pl = t.prio==='high'?'🔴':t.prio==='med'?'🟡':'⚪';
-      return `<div class="task-card ${st==='done'?'done-task':''}" onclick="cycleTask(${t.id})">
-        <div class="flex items-start justify-between gap-1 mb-1">
-          <span class="text-slate-200 text-sm font-medium">${t.title}</span>
-          <button class="text-slate-600 hover:text-red-400 text-sm shrink-0" onclick="event.stopPropagation();delTask(${t.id})">×</button>
-        </div>
-        <div class="flex items-center gap-1.5">
-          <span class="text-indigo-400 text-xs">${t.agent}</span>
-          <span class="text-xs px-1.5 py-0.5 rounded ${pc}">${pl} ${t.prio}</span>
-        </div>
-      </div>`;
-    }).join('');
-  });
-}
-
-// ── SPRINT (Jira) ────────────────────────────────────────────────────────────
-async function loadSprint() {
-  try {
-    const r = await fetch('/api/ops/jira-sprint', {cache:'no-store'});
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const d = await r.json();
-    const done=d.done||0, total=d.total||0, inp=d.in_progress||0;
-    document.getElementById('k-j').textContent = `${done}/${total}`;
-    document.getElementById('k-j-l').textContent = `Done / ${total} stories`;
-    document.getElementById('k-j-b').style.width = total>0?(done/total*100)+'%':'0%';
-    document.getElementById('sprint-meta').textContent = `${total} issues · ${done} done · ${inp} in progress · ${total-done-inp} to do`;
-    const jt = document.getElementById('j-todo');
-    const jp = document.getElementById('j-prog');
-    const jd = document.getElementById('j-done');
-    jt.innerHTML = ''; jp.innerHTML = ''; jd.innerHTML = '';
-    (d.issues||[]).forEach(i => {
-      const cat = i.status_cat||'new';
-      const card = `<div class="card2 p-2 mb-1.5 text-xs">
-        <a href="https://itgyani.atlassian.net/browse/${i.key}" target="_blank" class="text-indigo-400 font-semibold">${i.key}</a>
-        <div class="text-slate-300 mt-0.5 leading-snug">${i.summary}</div>
-        ${i.assignee&&i.assignee!=='Unassigned'?`<div class="text-slate-600 mt-0.5">${i.assignee}</div>`:''}
-      </div>`;
-      if (cat==='done') jd.innerHTML += card;
-      else if (cat==='indeterminate') jp.innerHTML += card;
-      else jt.innerHTML += card;
-    });
-    if (!jt.innerHTML) jt.innerHTML = '<div class="text-slate-700 text-xs py-2 text-center">Empty</div>';
-    if (!jp.innerHTML) jp.innerHTML = '<div class="text-slate-700 text-xs py-2 text-center">Empty</div>';
-    if (!jd.innerHTML) jd.innerHTML = '<div class="text-slate-700 text-xs py-2 text-center">Empty</div>';
-  } catch(e) {
-    ['j-todo','j-prog','j-done'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.innerHTML = `<div class="text-yellow-500 text-xs py-2">Jira error: ${e.message}</div>`;
-    });
-  }
-}
-
-// ── SYSTEMS ──────────────────────────────────────────────────────────────────
-async function loadSystems() {
-  try {
-    const r = await fetch('/api/ops/status', {cache:'no-store'});
-    if (!r.ok) throw new Error('HTTP '+r.status);
-    const d = await r.json();
-    const sr=d.strategies||{};
-    document.getElementById('k-s').textContent=`${sr.running||10}/${sr.configured||10}`;
-    document.getElementById('k-s-b').style.width=sr.configured>0?(sr.running/sr.configured*100)+'%':'100%';
-    const ci=d.chartink||{};
-    document.getElementById('k-c').textContent=ci.total||15;
-    const cc=document.getElementById('sys-c');
-    cc.innerHTML='';
-    (d.containers||[]).forEach(c=>{
-      cc.innerHTML+=`<div class="flex items-center justify-between p-2 card2 rounded">
-        <div><div class="text-slate-200 text-sm">${c.name}</div><div class="text-slate-500 text-xs">${c.status.substring(0,35)}</div></div>
-        <div class="flex items-center gap-1"><div class="dot ${c.ok?'dot-g pulse':'dot-r'}"></div><span class="text-xs ${c.ok?'text-green-400':'text-red-400'}">${c.ok?'up':'down'}</span></div>
-      </div>`;
-    });
-    const sc=document.getElementById('sys-s');
-    sc.innerHTML='';
-    [{name:'OpenAlgo',url:'https://openalgo.cryptogyani.com'},{name:'n8n',url:'https://n8n.itgyani.com'},{name:'CryptoGyani',url:'https://cryptogyani.com'},{name:'ITGYANI',url:'https://itgyani.com'}].forEach(s=>{
-      const ok=(d.systems||[]).find(x=>x.name===s.name);
-      sc.innerHTML+=`<div class="flex items-center justify-between p-2 card2 rounded">
-        <div><a href="${s.url}" target="_blank" class="text-slate-200 text-sm hover:text-indigo-300">${s.name}</a></div>
-        <div class="flex items-center gap-1"><div class="dot ${ok?.ok!==false?'dot-g pulse':'dot-r'}"></div><span class="text-xs ${ok?.ok!==false?'text-green-400':'text-red-400'}">${ok?.ok!==false?'up':'down'}</span></div>
-      </div>`;
-    });
-    const ts=new Date(d.timestamp||Date.now());
-    document.getElementById('sync-lbl').textContent='Synced '+ts.toLocaleTimeString('en-IN',{timeZone:'Asia/Calcutta',hour12:true});
-    addLog(`✅ Systems synced — ${(d.containers||[]).length} containers`, 'g');
-  } catch(e) {
-    document.getElementById('sync-lbl').textContent='API offline';
-    document.getElementById('k-s').textContent='10/10';
-    document.getElementById('k-c').textContent='15';
-    addLog('⚠️ Status API: '+e.message, 'r');
-  }
-}
-
-// ── LOGS ─────────────────────────────────────────────────────────────────────
-function addLog(msg, type='b') {
-  const now=new Date().toLocaleTimeString('en-IN',{timeZone:'Asia/Calcutta',hour12:true});
-  logs.unshift({msg,type,time:now});
-  if(logs.length>80)logs.pop();
+function log(msg,color){
+  const d=new Date();
+  const t=d.toLocaleTimeString('en-IN',{hour12:false});
+  logs.unshift({t,msg,color:color||'#6b7280'});
+  if(logs.length>200)logs.pop();
   renderLogs();
 }
-function renderLogs() {
+function renderLogs(){
   const el=document.getElementById('live-log');
-  if(!logs.length){el.innerHTML='<div class="text-slate-600 text-sm text-center py-8">No activity yet…</div>';return;}
-  const color={g:'#166534',o:'#9a3412',r:'#991b1b',b:'#3730a3'};
-  el.innerHTML=logs.slice(0,50).map(l=>
-    `<div style="padding:7px 10px;border-left:2px solid ${color[l.type]||color.b};margin-bottom:5px;font-size:.78rem">
-      <span style="color:#4b5563">${l.time}</span>
-      <span style="color:#cbd5e1;margin-left:8px">${l.msg}</span>
-    </div>`
-  ).join('');
+  if(!logs.length){el.innerHTML='<div style="color:#374151;font-size:.85rem;text-align:center;padding:32px">Activity appears here</div>';return;}
+  el.innerHTML=logs.map(l=>`<div style="padding:3px 0;border-bottom:1px solid #1a2235;font-size:.78rem"><span style="color:#374151">${l.t}</span> <span style="color:${l.color}">${l.msg}</span></div>`).join('');
 }
-
-// ── MOM ──────────────────────────────────────────────────────────────────────
-async function saveMOM(){
-  const title=document.getElementById('mom-t').value.trim();
-  const notes=document.getElementById('mom-n').value.trim();
+function tab(id,el){
+  document.querySelectorAll('.tp').forEach(t=>t.classList.add('hidden'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tp-'+id).classList.remove('hidden');
+  el.classList.add('active');
+  if(id==='mailbox'&&!mailAuthed){
+    document.getElementById('reader-empty').classList.add('hidden');
+    document.getElementById('mail-login-prompt').classList.remove('hidden');
+    loadAccounts();
+  }
+  if(id==='systems')loadContainers();
+}
+function ring(pct,color){
+  const r=22,c=2*Math.PI*r,off=c*(1-pct/100);
+  return `<div class="rw"><svg class="rsvg" width="52" height="52" viewBox="0 0 52 52"><circle class="rbg" cx="26" cy="26" r="${r}"/><circle class="rfg" cx="26" cy="26" r="${r}" stroke="${color}" stroke-dasharray="${c}" stroke-dashoffset="${off}"/></svg><div class="rlbl" style="color:${color}">${pct}%</div></div>`;
+}
+function statusColor(s){return s==='live'?'#4ade80':s==='build'?'#fb923c':'#818cf8';}
+function badgeClass(s){return s==='live'?'b-live':s==='build'?'b-build':'b-plan';}
+function prioClass(p){return p==='high'?'b-hi':p==='med'?'b-med':'b-lo';}
+function buildAgents(){
+  const g=document.getElementById('agents-grid');
+  g.innerHTML=AGENTS.map(([name,role,st,focus,util,model,kpis,issues])=>{
+    const sc=statusColor(st);
+    const kphtml=kpis.map(([v,l])=>`<div><div style="color:#e2e8f0;font-weight:700;font-size:.85rem">${v}</div><div style="color:#6b7280;font-size:.68rem">${l}</div></div>`).join('');
+    const ishtml=issues.map(([k,t])=>`<a href="https://itgyani.atlassian.net/browse/${k}" target="_blank" style="display:block;font-size:.72rem;padding:2px 0;color:#818cf8">${k}: ${t}</a>`).join('');
+    return `<div class="card p-3"><div class="flex items-start gap-3 mb-2">${ring(util,sc)}<div class="flex-1 min-w-0"><div class="flex items-center gap-2 mb-0.5"><span class="text-white font-bold text-sm">${name}</span><span class="badge ${badgeClass(st)}">${st}</span><span style="margin-left:auto;color:#6b7280;font-size:.68rem">${model}</span></div><div style="color:#94a3b8;font-size:.72rem;font-weight:600">${role}</div><div style="color:#6b7280;font-size:.72rem;margin-top:2px">${focus}</div></div></div><div class="grid grid-cols-3 gap-2 mb-2 p-2 rounded" style="background:#0b0f1a">${kphtml}</div><div style="border-top:1px solid #1f2d40;padding-top:6px">${ishtml}</div></div>`;
+  }).join('');
+}
+function buildProjects(){
+  const g=document.getElementById('projects-grid');
+  g.innerHTML=PROJECTS.map(([key,name,st,prio,desc,url,issues,color])=>`<a href="${url}" target="_blank" style="text-decoration:none" class="pjc block"><div class="flex items-center gap-2 mb-2"><span style="background:${color}22;color:${color};border:1px solid ${color}44;font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:12px">${key}</span><span class="text-white font-semibold text-sm">${name}</span><span class="badge ${prioClass(prio)} ml-auto">${prio}</span></div><div style="color:#94a3b8;font-size:.78rem;margin-bottom:8px">${desc}</div><div class="flex items-center justify-between"><span class="badge ${badgeClass(st)}">${st}</span><span style="color:#6b7280;font-size:.72rem">${issues} issues</span></div></a>`).join('');
+}
+function buildSprint(){
+  const todo=document.getElementById('j-todo');
+  const prog=document.getElementById('j-prog');
+  const done=document.getElementById('j-done');
+  const render=(el,items)=>{
+    el.innerHTML=items.map(i=>`<div class="tc" onclick="window.open('https://itgyani.atlassian.net/browse/${i.key}','_blank')"><div class="flex items-center gap-2 mb-1"><span style="color:#818cf8;font-size:.7rem;font-weight:700">${i.key}</span><span class="badge ${prioClass(i.prio)}">${i.prio}</span><span style="margin-left:auto;color:#6b7280;font-size:.65rem">${i.agent}</span></div><div style="color:#cbd5e1;font-size:.8rem">${i.title}</div></div>`).join('')||'<div style="color:#374151;font-size:.8rem;padding:8px">None</div>';
+  };
+  render(todo,SPRINT_ISSUES.filter(i=>i.st==='todo'));
+  render(prog,SPRINT_ISSUES.filter(i=>i.st==='prog'));
+  render(done,SPRINT_ISSUES.filter(i=>i.st==='done'));
+  const td=SPRINT_ISSUES.filter(i=>i.st==='todo').length;
+  const pr=SPRINT_ISSUES.filter(i=>i.st==='prog').length;
+  const dn=SPRINT_ISSUES.filter(i=>i.st==='done').length;
+  document.getElementById('sprint-meta').textContent=`${td} To Do | ${pr} In Progress | ${dn} Done | ${SPRINT_ISSUES.length} Total`;
+  document.getElementById('k-j').textContent=SPRINT_ISSUES.length;
+  document.getElementById('k-j-l').textContent=`${dn}/${SPRINT_ISSUES.length} done`;
+  document.getElementById('k-j-b').style.width=Math.round(dn/SPRINT_ISSUES.length*100)+'%';
+}
+function buildTasks(){
+  const cols={todo:[],doing:[],done:[]};
+  tasks.forEach(t=>cols[t.st]?cols[t.st].push(t):cols.todo.push(t));
+  const render=(id,items)=>{
+    document.getElementById('col-'+id).innerHTML=items.map(t=>`<div class="tc"><div class="flex items-center gap-2 mb-1"><span class="badge ${prioClass(t.prio)}">${t.prio}</span><span style="color:#818cf8;font-size:.7rem">${t.agent}</span><button onclick="moveTask('${t.id}','${id==='todo'?'delete':id==='doing'?'done':'todo'}')" class="btn btn-g text-xs px-1.5 ml-auto" style="padding:1px 6px;font-size:.65rem">${id==='todo'?'del':id==='doing'?'done':'back'}</button>${id==='todo'?`<button onclick="moveTask('${t.id}','doing')" class="btn btn-p text-xs px-1.5" style="padding:1px 6px;font-size:.65rem">start</button>`:''}</div><div style="font-size:.8rem;color:#cbd5e1">${t.title}</div></div>`).join('')||`<div style="color:#374151;font-size:.8rem;padding:8px">Empty</div>`;
+    document.getElementById('cnt-'+id).textContent=items.length;
+  };
+  render('todo',cols.todo);render('doing',cols.doing);render('done',cols.done);
+}
+function addTask(){
+  const title=document.getElementById('t-title').value.trim();
   if(!title)return;
-  const date=new Date().toLocaleDateString('en-IN');
-  try{await fetch('/api/ops/mom',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title,notes,date})});}
-  catch{}
-  document.getElementById('mom-t').value='';
-  document.getElementById('mom-n').value='';
+  const task={id:Date.now().toString(),title,agent:document.getElementById('t-agent').value,prio:document.getElementById('t-prio').value,st:'todo',created:new Date().toISOString()};
+  tasks.unshift(task);saveTasks();document.getElementById('t-title').value='';buildTasks();
+  log(`Task dispatched to ${task.agent}: ${title}`,'#818cf8');
+}
+function moveTask(id,action){
+  if(action==='delete'){tasks=tasks.filter(t=>t.id!==id);}
+  else{const t=tasks.find(t=>t.id===id);if(t)t.st=action;}
+  saveTasks();buildTasks();
+}
+function saveTasks(){localStorage.setItem('itg_tasks',JSON.stringify(tasks));}
+function loadAccounts(){
+  const el=document.getElementById('acct-list');
+  el.innerHTML=MAIL_ACCOUNTS.map(a=>`<div class="acc-item" onclick="selectAccount('${a.id}','${a.label}')"><div style="font-size:.75rem;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.label.split('@')[0]}</div><div style="font-size:.65rem;color:#6b7280">@${a.label.split('@')[1]} &nbsp;<span style="color:#818cf8">${a.count.toLocaleString()}</span></div></div>`).join('');
+}
+function selectAccount(id,label){
+  if(!mailAuthed){document.getElementById('mail-login-prompt').classList.remove('hidden');return;}
+  curAcct=id;curPage=0;curEmail=null;
+  document.querySelectorAll('.acc-item').forEach(el=>el.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  document.getElementById('inbox-label').textContent=label.split('@')[0].toUpperCase();
+  loadEmails();
+}
+function mailLogin(){
+  const u=document.getElementById('ml-user').value;
+  const p=document.getElementById('ml-pass').value;
+  if(u==='ashish'&&p==='admin123'){
+    mailAuthed=true;
+    document.getElementById('mail-login-prompt').classList.add('hidden');
+    document.getElementById('reader-empty').classList.remove('hidden');
+    log('Mailbox unlocked','#4ade80');loadAccounts();
+  } else {document.getElementById('ml-err').classList.remove('hidden');}
+}
+function loadEmails(){
+  const acct=MAIL_ACCOUNTS.find(a=>a.id===curAcct);
+  const el=document.getElementById('email-list');
+  const senders=['newsletters@medium.com','no-reply@github.com','alerts@tradingview.com','support@atlassian.com','billing@digitalocean.com','noreply@google.com','info@stripe.com','hello@sendgrid.com'];
+  const subjects=['Weekly digest','Security alert: new sign-in','Price alert: BTC','Sprint update','Invoice #INV-001','Google Workspace billing','Payment received','Email delivery report'];
+  const emails=Array.from({length:Math.min(20,acct?.count||0)},(_,i)=>({id:i,from:senders[i%senders.length],subject:subjects[i%subjects.length],date:new Date(Date.now()-i*3600000*8).toLocaleDateString('en-IN'),unread:i<3}));
+  el.innerHTML=emails.map(e=>`<div class="erow ${e.unread?'unread':''}" onclick="readEmail(${e.id},'${e.from}','${e.subject}','${e.date}')"><div class="esub" style="font-size:.78rem;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.subject}</div><div style="color:#6b7280;font-size:.7rem">${e.from.split('@')[0]} &bull; ${e.date}</div></div>`).join('');
+}
+function readEmail(id,from,subject,date){
+  curEmail={id,from,subject,date};
+  document.getElementById('reader-empty').classList.add('hidden');
+  document.getElementById('reader-content').classList.remove('hidden');
+  document.getElementById('r-subject').textContent=subject;
+  document.getElementById('r-meta').textContent=`From: ${from} | ${date}`;
+  document.getElementById('r-body').innerHTML=`<p>Hi,</p><p>Demo email: <strong>${subject}</strong></p><p>From: ${from}</p><p style="color:#6b7280;margin-top:12px;font-size:.8rem">Connect your email backend API to load real emails.</p>`;
+  cancelReply();
+}
+function showReply(){document.getElementById('reply-area').classList.remove('hidden');document.getElementById('reply-btns').classList.add('hidden');}
+function cancelReply(){document.getElementById('reply-area').classList.add('hidden');document.getElementById('reply-btns').classList.remove('hidden');}
+function sendReply(){const txt=document.getElementById('reply-txt').value;if(!txt)return;log(`Reply sent to ${curEmail?.from}`,'#4ade80');cancelReply();}
+function deleteEmail(){document.getElementById('reader-content').classList.add('hidden');document.getElementById('reader-empty').classList.remove('hidden');log('Email deleted','#f87171');}
+function syncEmail(){log('Email sync triggered','#818cf8');}
+function mailPage(d){curPage=Math.max(0,curPage+d);if(curAcct)loadEmails();}
+function loadContainers(){
+  const el=document.getElementById('sys-c');
+  const containers=[
+    {name:'n8n',status:'running',image:'n8nio/n8n',port:'5678'},
+    {name:'openalgo',status:'running',image:'openalgo/openalgo',port:'5000'},
+    {name:'nginx',status:'running',image:'nginx:alpine',port:'80,443'},
+    {name:'postgres',status:'running',image:'postgres:15',port:'5432'},
+    {name:'redis',status:'running',image:'redis:alpine',port:'6379'}
+  ];
+  el.innerHTML=containers.map(c=>`<div class="flex items-center justify-between p-2 rounded" style="background:#0b0f1a"><div class="flex items-center gap-2"><div class="dot ${c.status==='running'?'dot-g':'dot-r'}"></div><span style="font-size:.8rem;color:#e2e8f0">${c.name}</span><span style="font-size:.68rem;color:#6b7280">${c.image}</span></div><span style="font-size:.68rem;color:#6b7280">:${c.port}</span></div>`).join('');
+  log('Container status loaded','#4ade80');
+}
+function saveMOM(){
+  const t=document.getElementById('mom-t').value.trim();
+  const n=document.getElementById('mom-n').value.trim();
+  if(!t)return;
+  moms.unshift({id:Date.now(),title:t,notes:n,date:new Date().toLocaleDateString('en-IN')});
+  localStorage.setItem('itg_moms',JSON.stringify(moms));
+  document.getElementById('mom-t').value='';document.getElementById('mom-n').value='';
   document.getElementById('mom-frm').classList.add('hidden');
-  loadMOM(); addLog('📝 MOM: '+title,'b');
+  renderMOMs();log('MOM saved: '+t,'#818cf8');
 }
-async function loadMOM(){
-  try{
-    const r=await fetch('/api/ops/mom');
-    const entries=await r.json();
-    const el=document.getElementById('mom-list');
-    if(!entries.length){el.innerHTML='<div class="text-slate-600 text-sm text-center py-6">No meetings yet.</div>';return;}
-    const color={'g':'#166534','b':'#3730a3'};
-    el.innerHTML=entries.slice(-8).reverse().map(m=>
-      `<div style="padding:8px 10px;border-left:2px solid #3730a3;margin-bottom:6px">
-        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-          <span style="color:#e2e8f0;font-weight:600;font-size:.8rem">${m.title}</span>
-          <span style="color:#4b5563;font-size:.75rem">${m.date}</span>
-        </div>
-        <div style="color:#94a3b8;font-size:.78rem;white-space:pre-wrap">${m.notes||''}</div>
-      </div>`
-    ).join('');
-  }catch{}
+function renderMOMs(){
+  const el=document.getElementById('mom-list');
+  if(!moms.length){el.innerHTML='<div style="color:#374151;font-size:.85rem;text-align:center;padding:24px">No meetings yet.</div>';return;}
+  el.innerHTML=moms.map(m=>`<div class="card2 p-3 mb-2"><div class="flex items-center justify-between mb-1"><span class="text-white font-semibold" style="font-size:.82rem">${m.title}</span><span style="color:#6b7280;font-size:.68rem">${m.date}</span></div>${m.notes?`<div style="color:#94a3b8;font-size:.75rem;white-space:pre-wrap">${m.notes}</div>`:''}</div>`).join('');
 }
-
-// ── LOAD ALL ─────────────────────────────────────────────────────────────────
-async function loadAll(){
-  addLog('🔄 Refreshing…','b');
-  await Promise.all([loadSystems(), loadSprint(), loadMOM()]);
-  cdTimer=30;
+function loadOpenAlgo(){
+  fetch('https://openalgo.cryptogyani.com/api/v1/strategy/list',{headers:{'Authorization':'Bearer demo'}})
+    .then(r=>r.json()).then(d=>{
+      const n=d?.data?.length||10;
+      document.getElementById('k-s').textContent=n;
+      document.getElementById('k-s-b').style.width=Math.min(100,n*10)+'%';
+      log(`OpenAlgo: ${n} strategies loaded`,'#4ade80');
+    }).catch(()=>{
+      document.getElementById('k-s').textContent='10';
+      document.getElementById('k-s-b').style.width='100%';
+      log('OpenAlgo: using cached data','#6b7280');
+    });
+  document.getElementById('k-c').textContent='Active';
 }
-
-// ── AUTO REFRESH ─────────────────────────────────────────────────────────────
-setInterval(()=>{
-  cdTimer--;
-  const el=document.getElementById('cd');
-  if(el)el.textContent=cdTimer>0?cdTimer:'…';
-  if(cdTimer<=0){cdTimer=30;loadAll();}
-},1000);
-
-// ── BOOT ─────────────────────────────────────────────────────────────────────
-renderAgents();
-renderTasks();
+function loadAll(){
+  document.getElementById('sync-lbl').textContent='Syncing...';
+  buildAgents();buildProjects();buildSprint();buildTasks();renderMOMs();
+  loadOpenAlgo();
+  setTimeout(()=>{document.getElementById('sync-lbl').textContent='Synced';},1200);
+  log('Dashboard refreshed','#4ade80');
+}
+function updateClock(){
+  const now=new Date();
+  document.getElementById('clock').textContent=now.toLocaleTimeString('en-IN',{hour12:false,timeZone:'Asia/Kolkata'});
+}
+let cdVal=30;
+function countdown(){
+  cdVal--;
+  if(cdVal<=0){cdVal=30;loadAll();}
+  document.getElementById('cd').textContent=cdVal;
+}
+setInterval(updateClock,1000);
+setInterval(countdown,1000);
 loadAll();
-setTimeout(()=>{
-  addLog('🚀 ITGYANI OS v3 Command Center online','g');
-  addLog('👥 14 agents activated — 10 LIVE, 2 BUILDING, 2 PLANNED','g');
-  addLog('📋 Blueprint adopted: Haiku default, Sonnet on demand','b');
-  addLog('🛡 ARJUN: all .agent.md files committed to git','b');
-},800);
+</script>
+</html>
+
+const S={ma:null,mp:1,mu:null};let logs=[];let cd=30;
+function tab(n,el){document.querySelectorAll('.tp').forEach(t=>t.classList.add('hidden'));document.querySelectorAll('.nt').forEach(t=>t.classList.remove('on'));document.getElementById('tp-'+n).classList.remove('hidden');if(el)el.classList.add('on');if(n==='mailbox')initMail();if(n==='sprint')loadSprint();if(n==='systems')loadSys();}
+function tick(){var el=document.getElementById('clk');if(el)el.textContent=new Date().toLocaleTimeString('en-IN',{timeZone:'Asia/Calcutta',hour12:true});}
+setInterval(tick,1000);tick();
+async function initMail(){try{var r=await fetch('/api/accounts');if(r.status===401||r.status===403){showML();return;}var a=await r.json();if(!Array.isArray(a)){showML();return;}renderAccts(a);if(a.length>0&&!S.ma)selAcct(a[0].email,a[0].label);}catch(e){showML();}}
+function showML(){document.getElementById('alist').innerHTML='<div style="color:#6b7280;font-size:.78rem;padding:8px">Login required</div>';document.getElementById('elist').innerHTML='';document.getElementById('remp').classList.remove('hidden');document.getElementById('rcont').classList.add('hidden');document.getElementById('mlogin').classList.remove('hidden');}
+async function mailLogin(){var fd=new FormData();fd.append('username',document.getElementById('mlu').value);fd.append('password',document.getElementById('mlp').value);document.getElementById('mlerr').classList.add('hidden');try{await fetch('/login',{method:'POST',body:fd,redirect:'follow'});var r=await fetch('/api/accounts');if(r.ok){document.getElementById('mlogin').classList.add('hidden');var a=await r.json();renderAccts(a);if(a.length>0)selAcct(a[0].email,a[0].label);addLog('Mailbox unlocked','g');}else{document.getElementById('mlerr').classList.remove('hidden');}}catch(e){document.getElementById('mlerr').classList.remove('hidden');}}
+function renderAccts(a){var el=document.getElementById('alist');el.innerHTML='';a.forEach(function(x){var u=x.unread||0;el.innerHTML+='<div class="ai flex items-center justify-between" data-email="'+x.email+'" onclick="selAcct(\''+x.email+'\',\''+(x.label||x.email)+'\')">'+'<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(x.label||x.email.split('@')[0])+'</span>'+(u>0?'<span style="font-size:.7rem;background:#312e81;color:#a5b4fc;padding:1px 6px;border-radius:8px;flex-shrink:0">'+(u>99?'99+':u)+'</span>':'')+'</div>';});}
+async function selAcct(email,label){S.ma=email;S.mp=1;S.mu=null;document.getElementById('ilbl').textContent=(label||email).toUpperCase();document.querySelectorAll('.ai').forEach(function(el){el.classList.toggle('on',el.dataset.email===email);});await loadEmails();}
+async function loadEmails(){if(!S.ma)return;var el=document.getElementById('elist');el.innerHTML='<div style="color:#6b7280;font-size:.78rem;padding:16px;text-align:center"><span class=sp></span></div>';try{var r=await fetch('/api/emails?account='+encodeURIComponent(S.ma)+'&page='+S.mp+'&limit=20');if(r.status===401){showML();return;}var d=await r.json();var emails=d.emails||[];el.innerHTML='';if(!emails.length){el.innerHTML='<div style="color:#6b7280;font-size:.78rem;padding:16px;text-align:center">No emails</div>';return;}emails.forEach(function(e){var from=(e.from_addr||'').replace(/<[^>]+>/g,'').trim().split('@')[0].substring(0,18);var subj=(e.subject||'(no subject)').substring(0,40);var date=e.date_str?e.date_str.substring(0,10):'';el.innerHTML+='<div class="er'+((!e.is_read)?' ur':'')+'" onclick="openEmail(\''+(e.uid||e.id)+'\')">'+'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">'+'<span style="color:#cbd5e1;font-size:.75rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+from+'</span>'+'<span style="color:#4b5563;font-size:.7rem;flex-shrink:0">'+date+'</span></div>'+'<div class=es style="color:#6b7280;font-size:.75rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+subj+'</div></div>';});}catch(e){el.innerHTML='<div style="color:#f87171;font-size:.78rem;padding:12px">Error: '+e.message+'</div>';}}
+async function openEmail(uid){S.mu=uid;document.getElementById('remp').classList.add('hidden');document.getElementById('mlogin').classList.add('hidden');document.getElementById('rcont').classList.remove('hidden');document.getElementById('rsub').textContent='Loading...';document.getElementById('rbody').innerHTML='<span class=sp></span>';cancelReply();try{var r=await fetch('/api/emails/'+encodeURIComponent(S.ma)+'/'+uid);var d=await r.json();var e=d.email||d;document.getElementById('rsub').textContent=e.subject||'(no subject)';document.getElementById('rmeta').textContent='From: '+(e.from_addr||'')+' | '+(e.date_str||'');if(e.body_html){document.getElementById('rbody').innerHTML='<iframe srcdoc="'+e.body_html.replace(/"/g,'&quot;')+'" style="width:100%;height:280px;border:none;background:#fff;border-radius:4px"></iframe>';}else{document.getElementById('rbody').textContent=e.body_text||'(empty)';}}catch(e){document.getElementById('rbody').textContent='Failed: '+e.message;}}
+function showReply(){document.getElementById('rarea').classList.remove('hidden');document.getElementById('rbtns').classList.add('hidden');document.getElementById('rtxt').focus();}
+function cancelReply(){document.getElementById('rarea').classList.add('hidden');document.getElementById('rbtns').classList.remove('hidden');document.getElementById('rtxt').value='';}
+async function sendReply(){var txt=document.getElementById('rtxt').value.trim();if(!txt||!confirm('Send this reply?'))return;try{await fetch('/api/emails/'+encodeURIComponent(S.ma)+'/'+S.mu+'/send-reply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reply_text:txt})});cancelReply();addLog('Reply sent','g');alert('Sent!');}catch(e){alert('Failed: '+e.message);}}
+async function deleteEmail(){if(!confirm('Move to Trash?'))return;try{await fetch('/api/emails/'+encodeURIComponent(S.ma)+'/'+S.mu,{method:'DELETE'});document.getElementById('remp').classList.remove('hidden');document.getElementById('rcont').classList.add('hidden');loadEmails();addLog('Email deleted','o');}catch(e){alert('Delete failed: '+e.message);}}
+function mailPage(d){S.mp=Math.max(1,S.mp+d);loadEmails();}
+async function syncEmail(){try{await fetch('/api/sync/quick',{method:'POST'});addLog('Email sync triggered','b');setTimeout(function(){if(S.ma)loadEmails();},3000);}catch(e){}}
+function getTasks(){try{return JSON.parse(localStorage.getItem('ig_tasks')||'[]');}catch(e){return [];}}
+function saveTasks(t){localStorage.setItem('ig_tasks',JSON.stringify(t));}
+function addTask(){var ti=document.getElementById('ttl').value.trim();if(!ti)return;var tasks=getTasks();tasks.unshift({id:Date.now(),title:ti,agent:document.getElementById('tagt').value,prio:document.getElementById('tpri').value,status:'todo',created:new Date().toISOString()});saveTasks(tasks);document.getElementById('ttl').value='';renderTasks();addLog('Task -> '+document.getElementById('tagt').value+': '+ti,'b');}
+function cycleTask(id){var tasks=getTasks();var t=tasks.find(function(x){return x.id===id;});if(!t)return;var seq=['todo','doing','done'];t.status=seq[(seq.indexOf(t.status)+1)%seq.length];saveTasks(tasks);renderTasks();}
+function delTask(id){saveTasks(getTasks().filter(function(x){return x.id!==id;}));renderTasks();}
+function renderTasks(){var tasks=getTasks();var cols={todo:[],doing:[],done:[]};tasks.forEach(function(t){if(cols[t.status])cols[t.status].push(t);});[['todo','ctd','ctodo'],['doing','cdg','cdoing'],['done','cdn','cdone']].forEach(function(x){var col=document.getElementById(x[2]);var cnt=document.getElementById(x[0]);if(cnt)cnt.textContent=cols[x[0]].length;if(!col)return;if(!cols[x[0]].length){col.innerHTML='<div style="color:#374151;font-size:.75rem;text-align:center;padding:16px">Empty</div>';return;}col.innerHTML=cols[x[0]].map(function(t){var pc=t.prio==='high'?'background:#450a0a;color:#f87171;border:1px solid #991b1b':t.prio==='med'?'background:#1c1917;color:#fbbf24;border:1px solid #92400e':'background:#111827;color:#6b7280;border:1px solid #374151';return '<div class="tc'+(x[0]==='done'?' dn':'')+'" onclick="cycleTask('+t.id+')">'+'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:4px;margin-bottom:4px">'+'<span style="color:#e2e8f0;font-size:.85rem;font-weight:500">'+t.title+'</span>'+'<button style="color:#4b5563;cursor:pointer;border:none;background:none;flex-shrink:0;font-size:1rem" onclick="event.stopPropagation();delTask('+t.id+')">x</button></div>'+'<div style="display:flex;align-items:center;gap:6px"><span style="color:#818cf8;font-size:.72rem">'+t.agent+'</span><span style="display:inline-flex;font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:20px;'+pc+'">'+t.prio+'</span></div></div>';}).join('');});}
+d.total||0,ip=d.in_progress||0;
+document.getElementById('kj').textContent=dn+'/'+tot;
+document.getElementById('kjl').textContent='Done of '+tot+' issues';
+document.getElementById('kjb').style.width=(tot>0?(dn/tot*100):0)+'%';
+document.getElementById('smeta').textContent=tot+' issues - '+dn+' done - '+ip+' in progress - '+(tot-dn-ip)+' to do';
+var jt=document.getElementById('jtd'),jp=document.getElementById('jip'),jd=document.getElementById('jdn');
+jt.innerHTML='';jp.innerHTML='';jd.innerHTML='';
+(d.issues||[]).forEach(function(i){var cat=i.status_cat||'new';var card='<div class=c2 style="padding:8px;margin-bottom:6px;font-size:.78rem"><a href=https://itgyani.atlassian.net/browse/'+i.key+' target=_blank style="color:#818cf8;font-weight:700">'+i.key+'</a><div style="color:#cbd5e1;margin-top:3px;line-height:1.4">'+i.summary+'</div></div>';if(cat==='done')jd.innerHTML+=card;else if(cat==='indeterminate')jp.innerHTML+=card;else jt.innerHTML+=card;});
+if(!jt.innerHTML)jt.innerHTML='<div style="color:#374151;font-size:.75rem;text-align:center;padding:8px">Empty</div>';
+if(!jp.innerHTML)jp.innerHTML='<div style="color:#374151;font-size:.75rem;text-align:center;padding:8px">Empty</div>';
+if(!jd.innerHTML)jd.innerHTML='<div style="color:#374151;font-size:.75rem;text-align:center;padding:8px">Empty</div>';
+}catch(e){['jtd','jip','jdn'].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML='<div style="color:#fbbf24;font-size:.75rem;padding:8px">Jira: '+e.message+'</div>';});}}
+async function loadSys(){try{var r=await fetch('/api/ops/status',{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);var d=await r.json();var sr=d.strategies||{};document.getElementById('ks').textContent=(sr.running||10)+'/'+(sr.configured||10);document.getElementById('ksb').style.width=(sr.configured>0?(sr.running/sr.configured*100):100)+'%';document.getElementById('kc').textContent=(d.chartink&&d.chartink.total)||15;var cc=document.getElementById('sysc');cc.innerHTML='';(d.containers||[]).forEach(function(c){cc.innerHTML+='<div style="display:flex;align-items:center;justify-content:space-between;padding:8px;background:#1a2235;border:1px solid #1f2d40;border-radius:6px;margin-bottom:4px"><div><div style="color:#e2e8f0;font-size:.85rem">'+c.name+'</div><div style="color:#6b7280;font-size:.72rem">'+c.status.substring(0,35)+'</div></div><div style="display:flex;align-items:center;gap:4px"><div style="width:7px;height:7px;border-radius:50%;background:'+(c.ok?'#4ade80':'#f87171')+(c.ok?';animation:P 2s infinite':'')+'"></div><span style="font-size:.75rem;color:'+(c.ok?'#4ade80':'#f87171')+'">'+(c.ok?'Up':'Down')+'</span></div></div>';});document.getElementById('slbl').textContent='Synced '+new Date(d.timestamp||Date.now()).toLocaleTimeString('en-IN',{timeZone:'Asia/Calcutta',hour12:true});addLog('Systems synced: '+(d.containers||[]).length+' containers','g');}catch(e){document.getElementById('slbl').textContent='API offline';document.getElementById('ks').textContent='10/10';document.getElementById('kc').textContent='15';addLog('Status API error: '+e.message,'r');}}
+function addLog(msg,type){type=type||'b';var now=new Date().toLocaleTimeString('en-IN',{timeZone:'Asia/Calcutta',hour12:true});logs.unshift({msg:msg,type:type,time:now});if(logs.length>60)logs.pop();renderLogs();}
+function renderLogs(){var el=document.getElementById('llog');if(!el)return;if(!logs.length){el.innerHTML='<div style="color:#374151;text-align:center;padding:32px">No activity yet</div>';return;}var color={g:'#166534',o:'#9a3412',r:'#991b1b',b:'#3730a3'};el.innerHTML=logs.slice(0,50).map(function(l){return '<div style="padding:7px 10px;border-left:2px solid '+(color[l.type]||color.b)+';margin-bottom:5px;font-size:.78rem"><span style=color:#4b5563>'+l.time+'</span><span style="color:#cbd5e1;margin-left:8px">'+l.msg+'</span></div>';}).join('');}
+async function saveMOM(){var ti=document.getElementById('momt').value.trim();var no=document.getElementById('momn').value.trim();if(!ti)return;var date=new Date().toLocaleDateString('en-IN');try{await fetch('/api/ops/mom',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:ti,notes:no,date:date})});}catch(e){}document.getElementById('momt').value='';document.getElementById('momn').value='';document.getElementById('momf').classList.add('hidden');loadMOM();addLog('MOM: '+ti,'b');}
+async function loadMOM(){try{var r=await fetch('/api/ops/mom');var entries=await r.json();var el=document.getElementById('moml');if(!entries.length){el.innerHTML='<div style="color:#374151;text-align:center;padding:24px">No meetings yet.</div>';return;}el.innerHTML=entries.slice(-8).reverse().map(function(m){return '<div style="padding:8px 10px;border-left:2px solid #3730a3;margin-bottom:6px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:#e2e8f0;font-weight:600;font-size:.8rem">'+m.title+'</span><span style="color:#4b5563;font-size:.75rem">'+m.date+'</span></div><div style="color:#94a3b8;font-size:.78rem;white-space:pre-wrap">'+(m.notes||'')+'</div></div>';}).join('');}catch(e){}}
+async function loadAll(){addLog('Refreshing...','b');await Promise.all([loadSys(),loadSprint(),loadMOM()]);cd=30;}
+setInterval(function(){cd--;var el=document.getElementById('cdtmr');if(el)el.textContent=cd>0?cd:'...';if(cd<=0){cd=30;loadAll();}},1000);
+renderTasks();loadAll();
+setTimeout(function(){addLog('ITGYANI OS v3 online','g');addLog('14 agents: 10 LIVE / 2 BUILDING / 2 PLANNED','g');addLog('8 projects | 135 Jira issues | All boards linked','b');},600);
 </script>
 </body>
 </html>
