@@ -133,3 +133,4 @@ Free 15-min demo this week? â†’ https://itgyani.com
 ## TRACKING SHEET COLUMNS
 Use a Google Sheet with: Name | Company | Channel | Sent Date | Reply | Stage | Notes
 
+
