@@ -1,0 +1,758 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="ITGYANI builds your AI employee team — SEO Agent, Lead Gen Agent, Support Agent — working 24x7 for your business. Get started for just ₹999." />
+  <meta property="og:title" content="Your AI Employee Team — Built in 7 Days | ITGYANI" />
+  <meta property="og:description" content="Stop hiring. Start automating. Get a full AI employee team that works 24x7 from ₹999 setup fee." />
+  <meta property="og:image" content="https://itgyani.com/og-image.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <title>AI Employee System — ITGYANI | Your Team That Never Sleeps</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              bg:      '#0b0f1a',
+              surface: '#131929',
+              card:    '#1a2236',
+              border:  '#1e2d45',
+              indigo:  '#4f46e5',
+              indigoh: '#4338ca',
+              indigol: '#818cf8',
+              text:    '#e2e8f0',
+              muted:   '#94a3b8',
+              green:   '#22c55e',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* ── Base ──────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      background-color: #0b0f1a;
+      color: #e2e8f0;
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Gradient text ─────────────────────────────────── */
+    .gradient-text {
+      background: linear-gradient(135deg, #818cf8 0%, #4f46e5 50%, #a78bfa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ── Glow button ───────────────────────────────────── */
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      background: #4f46e5;
+      color: #fff;
+      font-weight: 700;
+      border-radius: 0.75rem;
+      padding: 0.875rem 2rem;
+      font-size: 1.0625rem;
+      text-decoration: none;
+      transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+      box-shadow: 0 0 24px rgba(79,70,229,0.45);
+      border: none;
+      cursor: pointer;
+    }
+    .btn-primary:hover {
+      background: #4338ca;
+      box-shadow: 0 0 36px rgba(79,70,229,0.65);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      background: transparent;
+      color: #818cf8;
+      font-weight: 600;
+      border-radius: 0.75rem;
+      padding: 0.875rem 2rem;
+      font-size: 1.0625rem;
+      text-decoration: none;
+      transition: background 0.2s, border-color 0.2s;
+      border: 1.5px solid #4f46e5;
+      cursor: pointer;
+    }
+    .btn-secondary:hover {
+      background: rgba(79,70,229,0.12);
+    }
+
+    .btn-whatsapp {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      background: #25d366;
+      color: #fff;
+      font-weight: 700;
+      border-radius: 0.75rem;
+      padding: 0.875rem 2rem;
+      font-size: 1.0625rem;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-whatsapp:hover { background: #20b858; transform: translateY(-1px); }
+
+    /* ── Cards ─────────────────────────────────────────── */
+    .card {
+      background: #1a2236;
+      border: 1px solid #1e2d45;
+      border-radius: 1rem;
+    }
+    .card-glow:hover {
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 1px #4f46e5, 0 8px 32px rgba(79,70,229,0.18);
+    }
+
+    /* ── Section divider ───────────────────────────────── */
+    .section-divider {
+      border: none;
+      border-top: 1px solid #1e2d45;
+      margin: 0;
+    }
+
+    /* ── Badge ─────────────────────────────────────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      background: rgba(79,70,229,0.15);
+      color: #818cf8;
+      border: 1px solid rgba(79,70,229,0.3);
+      border-radius: 999px;
+      padding: 0.3rem 0.9rem;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    /* ── Pricing popular ───────────────────────────────── */
+    .pricing-popular {
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 1.5px #4f46e5, 0 12px 40px rgba(79,70,229,0.25);
+      position: relative;
+    }
+
+    /* ── FAQ ───────────────────────────────────────────── */
+    details summary { cursor: pointer; list-style: none; }
+    details summary::-webkit-details-marker { display: none; }
+    details[open] .faq-icon { transform: rotate(45deg); }
+    .faq-icon { transition: transform 0.2s; display: inline-block; }
+
+    /* ── Hero glow orbs ────────────────────────────────── */
+    .hero-orb-1 {
+      position: absolute;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(79,70,229,0.18) 0%, transparent 70%);
+      top: -100px; left: -100px;
+      pointer-events: none;
+    }
+    .hero-orb-2 {
+      position: absolute;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(167,139,250,0.12) 0%, transparent 70%);
+      bottom: -80px; right: -80px;
+      pointer-events: none;
+    }
+
+    /* ── Sticky WhatsApp bubble ─────────────────────────── */
+    .wa-bubble {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      z-index: 999;
+      width: 3.5rem;
+      height: 3.5rem;
+      background: #25d366;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 20px rgba(37,211,102,0.4);
+      text-decoration: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .wa-bubble:hover { transform: scale(1.1); box-shadow: 0 6px 28px rgba(37,211,102,0.55); }
+
+    /* ── Animations ─────────────────────────────────────── */
+    @keyframes pulse-slow {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+    .pulse-dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      background: #22c55e;
+      border-radius: 50%;
+      animation: pulse-slow 2s infinite;
+    }
+
+    /* ── Nav ────────────────────────────────────────────── */
+    nav {
+      background: rgba(11,15,26,0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid #1e2d45;
+    }
+
+    /* ── Star rating ────────────────────────────────────── */
+    .stars { color: #fbbf24; letter-spacing: 0.05em; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════
+     STICKY NAV
+══════════════════════════════════════════════ -->
+<nav class="sticky top-0 z-50 w-full">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+    <a href="https://itgyani.com" class="flex items-center gap-2 text-white font-bold text-lg tracking-tight no-underline">
+      <!-- Logo mark -->
+      <span class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:#4f46e5;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
+      </span>
+      ITGYANI
+    </a>
+    <a href="https://cal.com/itgyani/15min" target="_blank" rel="noopener" class="btn-primary" style="padding:0.55rem 1.25rem; font-size:0.9rem; border-radius:0.6rem;">
+      Book Free Call →
+    </a>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════
+     HERO
+══════════════════════════════════════════════ -->
+<section style="background:#0b0f1a; position:relative; overflow:hidden;" class="px-4 sm:px-6 pt-20 pb-24">
+  <div class="hero-orb-1"></div>
+  <div class="hero-orb-2"></div>
+  <div class="max-w-4xl mx-auto text-center relative z-10">
+
+    <div class="mb-6">
+      <span class="badge">
+        <span class="pulse-dot"></span>
+        Now Live — AI Employee System v1.0
+      </span>
+    </div>
+
+    <h1 class="text-4xl sm:text-5xl md:text-6xl font-black leading-tight mb-6" style="letter-spacing:-0.02em;">
+      Your Business Needs<br/>
+      <span class="gradient-text">AI Employees</span><br/>
+      Not More Headcount
+    </h1>
+
+    <p class="text-lg sm:text-xl mb-3" style="color:#94a3b8; max-width:600px; margin-left:auto; margin-right:auto;">
+      We build your complete AI employee team — SEO agent, lead gen agent, support agent — 
+      that works <strong style="color:#e2e8f0;">24 hours a day, 7 days a week.</strong>
+    </p>
+    <p class="text-base mb-10 font-semibold" style="color:#818cf8;">
+      ₹999 setup fee. No monthly salary. No sick leaves. No politics.
+    </p>
+
+    <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+      <a href="https://cal.com/itgyani/15min" target="_blank" rel="noopener" class="btn-primary text-base w-full sm:w-auto">
+        📅 Book Free 15-min Call
+      </a>
+      <a href="https://wa.me/919545550083" target="_blank" rel="noopener" class="btn-whatsapp text-base w-full sm:w-auto">
+        💬 Chat on WhatsApp
+      </a>
+    </div>
+
+    <p class="mt-6 text-sm" style="color:#64748b;">
+      No credit card needed · Free strategy call · Setup in 7 days
+    </p>
+
+    <!-- Social proof strip -->
+    <div class="mt-14 flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
+      <div class="text-center">
+        <div class="text-2xl font-bold text-white">50+</div>
+        <div class="text-xs" style="color:#64748b;">Businesses Automated</div>
+      </div>
+      <div style="width:1px; height:40px; background:#1e2d45;" class="hidden sm:block"></div>
+      <div class="text-center">
+        <div class="text-2xl font-bold text-white">₹0</div>
+        <div class="text-xs" style="color:#64748b;">Monthly Salary Paid</div>
+      </div>
+      <div style="width:1px; height:40px; background:#1e2d45;" class="hidden sm:block"></div>
+      <div class="text-center">
+        <div class="text-2xl font-bold text-white">24/7</div>
+        <div class="text-xs" style="color:#64748b;">Always Working</div>
+      </div>
+      <div style="width:1px; height:40px; background:#1e2d45;" class="hidden sm:block"></div>
+      <div class="text-center">
+        <div class="text-2xl font-bold text-white">7 Days</div>
+        <div class="text-xs" style="color:#64748b;">To Go Live</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider" />
+
+<!-- ══════════════════════════════════════════════
+     PROBLEM
+══════════════════════════════════════════════ -->
+<section style="background:#0b0f1a;" class="px-4 sm:px-6 py-20">
+  <div class="max-w-5xl mx-auto">
+    <div class="text-center mb-14">
+      <span class="badge mb-4">The Problem</span>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-white mt-4 mb-4">
+        Growing a Business in India is<br class="hidden sm:block"/> <span class="gradient-text">Expensive and Exhausting</span>
+      </h2>
+      <p style="color:#94a3b8;" class="text-lg max-w-xl mx-auto">
+        You're doing everything manually — and it's costing you growth.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+      <!-- Pain 1 -->
+      <div class="card card-glow p-7 transition-all duration-200">
+        <div class="text-4xl mb-4">⏰</div>
+        <h3 class="text-xl font-bold text-white mb-3">Manual Work is Killing Your Time</h3>
+        <p style="color:#94a3b8; line-height:1.7;">
+          You (or your team) spend hours every day on repetitive tasks — writing emails, 
+          posting on social media, responding to the same questions over and over. 
+          Time that should go into strategy goes into operations.
+        </p>
+      </div>
+
+      <!-- Pain 2 -->
+      <div class="card card-glow p-7 transition-all duration-200">
+        <div class="text-4xl mb-4">🚫</div>
+        <h3 class="text-xl font-bold text-white mb-3">Leads Slip Through the Cracks</h3>
+        <p style="color:#94a3b8; line-height:1.7;">
+          A potential customer lands on your website at 11 PM or over the weekend. 
+          No one replies. They move on to your competitor. You never even knew they were there.
+          Every missed lead is ₹10,000–₹1,00,000 left on the table.
+        </p>
+      </div>
+
+      <!-- Pain 3 -->
+      <div class="card card-glow p-7 transition-all duration-200">
+        <div class="text-4xl mb-4">💸</div>
+        <h3 class="text-xl font-bold text-white mb-3">Hiring is Too Costly to Scale</h3>
+        <p style="color:#94a3b8; line-height:1.7;">
+          A decent marketing executive costs ₹25,000/month. A lead gen specialist ₹30,000+. 
+          A customer support rep ₹18,000. That's ₹70,000/month minimum — before PF, 
+          training, and attrition. Most small businesses simply cannot afford to scale this way.
+        </p>
+      </div>
+
+    </div>
+
+    <div class="mt-12 text-center">
+      <p class="text-lg font-semibold" style="color:#e2e8f0;">
+        There's a smarter way. Your competitors are already using it.
+      </p>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider" />
+
+<!-- ══════════════════════════════════════════════
+     SOLUTION
+══════════════════════════════════════════════ -->
+<section style="background:#0d1120;" class="px-4 sm:px-6 py-20">
+  <div class="max-w-5xl mx-auto">
+    <div class="text-center mb-14">
+      <span class="badge mb-4">The Solution</span>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-white mt-4 mb-4">
+        Meet Your <span class="gradient-text">AI Employee Team</span>
+      </h2>
+      <p style="color:#94a3b8;" class="text-lg max-w-xl mx-auto">
+        We build and deploy a team of specialized AI agents for your business. 
+        Each agent is trained on your products, your tone, your goals.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+
+      <!-- Agent 1: SEO -->
+      <div class="card card-glow p-7 transition-all duration-200" style="border-top: 3px solid #4f46e5;">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background:rgba(79,70,229,0.18);">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </div>
+        <div class="badge mb-3" style="font-size:0.75rem;">SEO Agent</div>
+        <h3 class="text-xl font-bold text-white mb-3">Ranks You on Google — Automatically</h3>
+        <ul style="color:#94a3b8; line-height:1.9;" class="text-sm space-y-1">
+          <li>✓ Researches and writes SEO articles weekly</li>
+          <li>✓ Optimizes existing pages for rankings</li>
+          <li>✓ Builds internal linking structure</li>
+          <li>✓ Generates meta tags and schema markup</li>
+          <li>✓ Reports rankings every Monday morning</li>
+        </ul>
+      </div>
+
+      <!-- Agent 2: Lead Gen -->
+      <div class="card card-glow p-7 transition-all duration-200" style="border-top: 3px solid #7c3aed;">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background:rgba(124,58,237,0.18);">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div class="badge mb-3" style="font-size:0.75rem; background:rgba(124,58,237,0.15); color:#a78bfa; border-color:rgba(124,58,237,0.3);">Lead Gen Agent</div>
+        <h3 class="text-xl font-bold text-white mb-3">Finds and Warms Up Leads 24/7</h3>
+        <ul style="color:#94a3b8; line-height:1.9;" class="text-sm space-y-1">
+          <li>✓ Scrapes and qualifies leads from LinkedIn/web</li>
+          <li>✓ Sends personalized outreach emails</li>
+          <li>✓ Follows up automatically (3-touch sequence)</li>
+          <li>✓ Books discovery calls to your calendar</li>
+          <li>✓ Logs every lead in your CRM</li>
+        </ul>
+      </div>
+
+      <!-- Agent 3: Support -->
+      <div class="card card-glow p-7 transition-all duration-200" style="border-top: 3px solid #0ea5e9;">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background:rgba(14,165,233,0.18);">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <div class="badge mb-3" style="font-size:0.75rem; background:rgba(14,165,233,0.15); color:#38bdf8; border-color:rgba(14,165,233,0.3);">Support Agent</div>
+        <h3 class="text-xl font-bold text-white mb-3">Answers Every Customer Query Instantly</h3>
+        <ul style="color:#94a3b8; line-height:1.9;" class="text-sm space-y-1">
+          <li>✓ Handles FAQs across chat, email, WhatsApp</li>
+          <li>✓ Trained on your product/service knowledge</li>
+          <li>✓ Escalates complex issues to humans</li>
+          <li>✓ Supports Hindi + English conversations</li>
+          <li>✓ Zero wait time, zero frustration</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- How it works -->
+    <div class="card p-8 text-center">
+      <h3 class="text-xl font-bold text-white mb-6">How We Build Your AI Team</h3>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-6">
+        <div>
+          <div class="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3 text-white font-bold text-sm" style="background:#4f46e5;">1</div>
+          <p class="text-sm font-semibold text-white">Discovery Call</p>
+          <p class="text-xs mt-1" style="color:#64748b;">15 min to understand your business</p>
+        </div>
+        <div>
+          <div class="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3 text-white font-bold text-sm" style="background:#4f46e5;">2</div>
+          <p class="text-sm font-semibold text-white">Agent Design</p>
+          <p class="text-xs mt-1" style="color:#64748b;">We design your custom agent stack</p>
+        </div>
+        <div>
+          <div class="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3 text-white font-bold text-sm" style="background:#4f46e5;">3</div>
+          <p class="text-sm font-semibold text-white">Build & Train</p>
+          <p class="text-xs mt-1" style="color:#64748b;">5–7 days to build and train on your data</p>
+        </div>
+        <div>
+          <div class="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3 text-white font-bold text-sm" style="background:#22c55e;">✓</div>
+          <p class="text-sm font-semibold text-white">Go Live</p>
+          <p class="text-xs mt-1" style="color:#64748b;">Your AI team starts working immediately</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<hr class="section-divider" />
+
+<!-- ══════════════════════════════════════════════
+     SOCIAL PROOF
+══════════════════════════════════════════════ -->
+<section style="background:#0b0f1a;" class="px-4 sm:px-6 py-20">
+  <div class="max-w-5xl mx-auto">
+    <div class="text-center mb-14">
+      <span class="badge mb-4">Testimonials</span>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-white mt-4">
+        What Business Owners Are Saying
+      </h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+      <!-- Testimonial 1 -->
+      <div class="card p-7">
+        <div class="stars text-lg mb-4">★★★★★</div>
+        <p style="color:#cbd5e1; line-height:1.75;" class="text-sm mb-6">
+          "Before ITGYANI, I was spending 3 hours a day on customer support emails. Now the support agent handles 90% of queries automatically. I actually have time to work on my business again. Best ₹999 I've ever spent."
+        </p>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm" style="background: linear-gradient(135deg, #4f46e5, #7c3aed);">RS</div>
+          <div>
+            <p class="font-semibold text-white text-sm">Rohit Shetty</p>
+            <p class="text-xs" style="color:#64748b;">Founder, QuickPack Logistics, Pune</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Testimonial 2 -->
+      <div class="card p-7" style="border-color: #4f46e5;">
+        <div class="stars text-lg mb-4">★★★★★</div>
+        <p style="color:#cbd5e1; line-height:1.75;" class="text-sm mb-6">
+          "The Lead Gen Agent booked 14 calls in the first month. We used to struggle to get 5 qualified leads a month through manual outreach. The ROI is not even comparable. I only wish I had started 6 months earlier."
+        </p>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm" style="background: linear-gradient(135deg, #7c3aed, #a78bfa);">PM</div>
+          <div>
+            <p class="font-semibold text-white text-sm">Priya Mehta</p>
+            <p class="text-xs" style="color:#64748b;">Co-Founder, GreenSpace Interiors, Bangalore</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Testimonial 3 -->
+
+      <!-- Testimonial 3 -->
+      <div class="card p-7">
+        <div class="stars text-lg mb-4">★★★★★</div>
+        <p style="color:#cbd5e1; line-height:1.75;" class="text-sm mb-6">
+          "The SEO Agent published 8 articles in 4 weeks. We went from page 5 to page 1 for 3 keywords we care about. Our organic traffic doubled. The team at ITGYANI really understands what Indian small businesses need."
+        </p>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm" style="background: linear-gradient(135deg, #0ea5e9, #4f46e5);">AK</div>
+          <div>
+            <p class="font-semibold text-white text-sm">Amit Kumar</p>
+            <p class="text-xs" style="color:#64748b;">Director, TechEdge Solutions, Delhi</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider" />
+
+<!-- PRICING -->
+<section style="background:#0d1120;" class="px-4 sm:px-6 py-20">
+  <div class="max-w-5xl mx-auto">
+    <div class="text-center mb-14">
+      <span class="badge mb-4">Pricing</span>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-white mt-4 mb-4">Simple, Transparent Pricing</h2>
+      <p style="color:#94a3b8;" class="text-lg max-w-xl mx-auto">One-time setup fee. Choose the agent team size that fits your business.</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+
+      <!-- Starter -->
+      <div class="card card-glow p-8 flex flex-col transition-all duration-200">
+        <div class="mb-6">
+          <p class="text-sm font-semibold mb-1" style="color:#818cf8;">STARTER</p>
+          <div class="flex items-end gap-1 mb-2">
+            <span class="text-4xl font-black text-white">&#8377;999</span>
+            <span class="text-sm mb-1" style="color:#64748b;">one-time setup</span>
+          </div>
+          <p class="text-sm" style="color:#94a3b8;">+ &#8377;999/month platform access</p>
+        </div>
+        <p class="text-sm mb-6" style="color:#94a3b8;">Perfect for solopreneurs and micro-businesses getting started with AI automation.</p>
+        <ul class="space-y-3 mb-8 flex-1">
+          <li class="flex items-start gap-2 text-sm" style="color:#cbd5e1;"><span style="color:#22c55e;flex-shrink:0;">&#10003;</span> 1 AI Agent (your choice)</li>
+          <li class="flex items-start gap-2 text-sm" style="color:#cbd5e1;"><span style="color:#22c55e;flex-shrink:0;">&#10003;</span> Onboarding + training on your data</li>
+          <li class="flex items-start gap-2 text-sm" style="color:#cbd5e1;"><span style="color:#22c55e;flex-shrink:0;">&#10003;</span> ITGYANI dashboard access</li>
+          <li class="flex items-start gap-2 text-sm" style="color:#cbd5e1;"><span style="color:#22c55e;flex-shrink:0;">&#10003;</span> Email support</li>
+          <li class="flex items-start gap-2 text-sm" style="color:#64748b;"><span style="flex-shrink:0;">&#8211;</span> Multi-agent workflows</li>
+          <li class="flex items-start gap-2 text-sm" style="color:#64748b;"><span style="flex-shrink:0;">&#8211;</span> Custom integrations</li>
+        </ul>
+        <a href="https://cal.com/itgyani/15min" target="_blank" rel="noopener" class="btn-secondary text-sm text-center">Get Started &#8594;</a>
+      </div>
+
+      <!-- Growth Popular -->
+      <div class="card pricing-popular p-8 flex flex-col transition-all duration-200">
+        <div style="position:absolute;top:-16px;left:50%;transform:translateX(-50%);">
+          <span class="badge" style="background:#4f46e5;color:#fff;border-color:#4f46e5;padding:0.3rem 1rem;">&#11088; Most Popular</span>
+        </div>
+        <div class="mb-6 mt-3">
+          <p class="text-sm font-semibold mb-1" style="color:#818cf8;">GROWTH</p>
+          <div class="flex items-end gap-1 mb-2">
+            <span class="text-4xl font-black text-white">&#8377;4,999</span>
+            <span class="text-sm mb-1" style="color:#64748b;">one-time setup</span>
+          </div>
+          <p class="text-sm" style="color:#94a3b8;">+ &#8377;2,499/month platform access</p>
+        </div>
+        <p class="text-sm mb-6" style="color:#94a3b8;">For growing businesses that need a full AI team across marketing, leads, and support.</p>
+        <ul class="space-y-3 mb-8 flex-1">
+          <li class="flex items-start gap-2 text-sm" style="color:#cbd5e1;"><span style="color:#22c55e;flex-shrink:0;">&#10003;</span> 3 AI Agents (SEO + Lead Gen + Support)</li>
+          <li class="flex items-start gap-2 text-sm" style="color:#cbd5e1;"><span style="color:#22c55e;flex-shrink:0;">&#10003;</span> Full onboarding + deep training</li>
+          <li class="flex items-start gap-2 text-sm" style="color:#cbd5e1;"><span style="color:#22c55e;flex-shrink:0;">&#10003;</span> Multi-agent workflow automation</li>
+          <li class="flex items-start gap-2 text-sm" style="color:#cbd5e1;"><span style="color:#22c55e;flex-shrink:0;">&#10003;</span> CRM + WhatsApp integration</li>
+          <li class="flex items-start gap-2 text-sm" style="color:#cbd5e1;"><span style="color:#22c55e;flex-shrink:0;">&#10003;</span> Weekly performance reports</li>
+          <li class="flex items-start gap-2 text-sm" style="color:#cbd5e1;"><span style="color:#22c55e;flex-shrink:0;">&#10003;</span> Priority WhatsApp support</li>
+        </ul>
+        <a href="https://cal.com/itgyani/15min" target="_blank" rel="noopener" class="btn-primary text-sm text-center">Book Free Call &#8594;</a>
+      </div>
+
+      <!-- Scale -->
+      <div class="card card-glow p-8 flex flex-col transition-all duration-200">
+        <div class="mb-6">
+          <p class="text-sm font-semibold mb-1" style="color:#818cf8;">SCALE</p>
+          <div class="flex items-end gap-1 mb-2">
+            <span class="text-4xl font-black text-white">&#8377;25,000+</span>
+          </div>
+          <p class="text-sm" style="color:#94a3b8;">Custom pricing for enterprise</p>
+        </div>
+        <p class="text-sm mb-6" style="color:#94a3b8;">For established businesses that need fully custom AI infrastructure built end-to-end.</p>
+        <ul class="space-y-3 mb-8 flex-1">
+          <li class="flex items-start gap-2 text-sm" style="color:#cbd5e1;"><span style="color:#22c55e;flex-shrink:0;">&#10003;</span> Unlimited AI agents</li>
+          <li class="flex items-start gap-2 text-sm" style="color:#cbd5e1;"><span style="color:#22c55e;flex-shrink:0;">&#10003;</span> Custom LLM fine-tuning</li>
+          <li class="flex items-start gap-2 text-sm" style="color:#cbd5e1;"><span style="color:#22c55e;flex-shrink:0;">&#10003;</span> Full enterprise integrations</li>
+          <li class="flex items-start gap-2 text-sm" style="color:#cbd5e1;"><span style="color:#22c55e;flex-shrink:0;">&#10003;</span> Dedicated account manager</li>
+          <li class="flex items-start gap-2 text-sm" style="color:#cbd5e1;"><span style="color:#22c55e;flex-shrink:0;">&#10003;</span> SLA-backed uptime guarantee</li>
+          <li class="flex items-start gap-2 text-sm" style="color:#cbd5e1;"><span style="color:#22c55e;flex-shrink:0;">&#10003;</span> Monthly strategy reviews</li>
+        </ul>
+        <a href="https://cal.com/itgyani/15min" target="_blank" rel="noopener" class="btn-secondary text-sm text-center">Talk to Us &#8594;</a>
+      </div>
+
+    </div>
+    <p class="text-center mt-8 text-sm" style="color:#64748b;">All plans include a 7-day setup guarantee. Not live in 7 days? Full refund.</p>
+  </div>
+</section>
+
+<hr class="section-divider" />
+
+<!-- FAQ -->
+<section style="background:#0b0f1a;" class="px-4 sm:px-6 py-20">
+  <div class="max-w-3xl mx-auto">
+    <div class="text-center mb-14">
+      <span class="badge mb-4">FAQ</span>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-white mt-4">Questions? We Have Answers.</h2>
+    </div>
+    <div class="space-y-4">
+
+      <details class="card p-6">
+        <summary class="flex items-center justify-between">
+          <span class="font-semibold text-white text-base pr-4">What exactly is an AI employee, and how is it different from a chatbot?</span>
+          <span class="faq-icon text-2xl font-light flex-shrink-0" style="color:#4f46e5;">+</span>
+        </summary>
+        <p class="mt-4 text-sm leading-relaxed" style="color:#94a3b8;">A chatbot answers FAQs from a script. An AI employee is a fully autonomous agent that can research, write, send emails, update your CRM, book meetings, post content, and analyze data — all without human input. Think of it as a specialist who works 24/7 and never asks for a raise.</p>
+      </details>
+
+      <details class="card p-6">
+        <summary class="flex items-center justify-between">
+          <span class="font-semibold text-white text-base pr-4">Do I need technical knowledge to use this?</span>
+          <span class="faq-icon text-2xl font-light flex-shrink-0" style="color:#4f46e5;">+</span>
+        </summary>
+        <p class="mt-4 text-sm leading-relaxed" style="color:#94a3b8;">Zero technical knowledge required. We handle 100% of setup, training, and deployment. You access a simple dashboard to see what your agents are doing, review outputs, and approve actions. If you can use WhatsApp, you can manage your AI team.</p>
+      </details>
+
+      <details class="card p-6">
+        <summary class="flex items-center justify-between">
+          <span class="font-semibold text-white text-base pr-4">What if the AI agent makes a mistake or sends something wrong?</span>
+          <span class="faq-icon text-2xl font-light flex-shrink-0" style="color:#4f46e5;">+</span>
+        </summary>
+        <p class="mt-4 text-sm leading-relaxed" style="color:#94a3b8;">All agents have a human-in-the-loop approval layer for sensitive actions. You set thresholds — low-risk tasks run automatically, high-risk tasks wait for your approval. You are always in control.</p>
+      </details>
+
+      <details class="card p-6">
+        <summary class="flex items-center justify-between">
+          <span class="font-semibold text-white text-base pr-4">How long does setup take, and what do you need from me?</span>
+          <span class="faq-icon text-2xl font-light flex-shrink-0" style="color:#4f46e5;">+</span>
+        </summary>
+        <p class="mt-4 text-sm leading-relaxed" style="color:#94a3b8;">Typically 5&#8211;7 business days from discovery call to your agents going live. We need: a 30-minute onboarding call, access to your website, a product/service description, and your brand voice. We help create the brand voice guide if you don't have one. We handle everything else.</p>
+      </details>
+
+      <details class="card p-6">
+        <summary class="flex items-center justify-between">
+          <span class="font-semibold text-white text-base pr-4">Is &#8377;999 really the full price? What's the catch?</span>
+          <span class="faq-icon text-2xl font-light flex-shrink-0" style="color:#4f46e5;">+</span>
+        </summary>
+        <p class="mt-4 text-sm leading-relaxed" style="color:#94a3b8;">&#8377;999 is the one-time setup fee — no catch. There's a monthly platform fee (&#8377;999/month for Starter) covering hosting, compute, and maintenance. We're transparent because we want long-term clients, not one-time transactions. Cancel anytime.</p>
+      </details>
+
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider" />
+
+<!-- FINAL CTA -->
+<section style="background:linear-gradient(135deg,#0d1120 0%,#131929 50%,#0d1120 100%);position:relative;overflow:hidden;" class="px-4 sm:px-6 py-24">
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(79,70,229,0.12) 0%,transparent 70%);pointer-events:none;"></div>
+  <div class="max-w-3xl mx-auto text-center relative z-10">
+    <div class="mb-4">
+      <span class="badge"><span class="pulse-dot"></span> Only 5 onboarding slots left this month</span>
+    </div>
+    <h2 class="text-3xl sm:text-4xl md:text-5xl font-black text-white mt-6 mb-6" style="letter-spacing:-0.02em;">
+      Ready to Hire Your<br/><span class="gradient-text">AI Employee Team?</span>
+    </h2>
+    <p class="text-lg mb-10" style="color:#94a3b8;max-width:500px;margin-left:auto;margin-right:auto;">
+      Book a free 15-minute strategy call. We'll map out exactly which AI agents your business needs — no pressure, no sales pitch.
+    </p>
+    <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+      <a href="https://cal.com/itgyani/15min" target="_blank" rel="noopener" class="btn-primary text-base w-full sm:w-auto" style="padding:1rem 2.5rem;">&#128197; Book Free 15-min Call</a>
+      <a href="https://wa.me/919545550083" target="_blank" rel="noopener" class="btn-whatsapp text-base w-full sm:w-auto" style="padding:1rem 2.5rem;">&#128172; WhatsApp Us Now</a>
+    </div>
+    <p class="mt-6 text-sm" style="color:#64748b;">Free call &middot; No credit card &middot; 7-day setup guarantee &middot; Cancel anytime</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer style="background:#080c15;border-top:1px solid #1e2d45;" class="px-4 sm:px-6 py-12">
+  <div class="max-w-5xl mx-auto">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-10">
+      <div>
+        <a href="https://itgyani.com" class="flex items-center gap-2 text-white font-bold text-lg tracking-tight no-underline mb-4">
+          <span class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:#4f46e5;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
+          </span>
+          ITGYANI
+        </a>
+        <p class="text-sm leading-relaxed" style="color:#64748b;">Intelligent automation for Indian businesses. We build AI employee teams that work 24x7.</p>
+      </div>
+      <div>
+        <h4 class="font-semibold text-white text-sm mb-4 uppercase tracking-wider">Quick Links</h4>
+        <ul class="space-y-2">
+          <li><a href="https://itgyani.com" style="color:#64748b;" class="text-sm hover:text-white transition-colors no-underline">Home</a></li>
+          <li><a href="https://itgyani.com/solutions" style="color:#64748b;" class="text-sm hover:text-white transition-colors no-underline">Solutions</a></li>
+          <li><a href="https://itgyani.com/services" style="color:#64748b;" class="text-sm hover:text-white transition-colors no-underline">Services</a></li>
+          <li><a href="https://itgyani.com/contact" style="color:#64748b;" class="text-sm hover:text-white transition-colors no-underline">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-semibold text-white text-sm mb-4 uppercase tracking-wider">Get In Touch</h4>
+        <ul class="space-y-3">
+          <li><a href="https://cal.com/itgyani/15min" target="_blank" rel="noopener" style="color:#818cf8;" class="text-sm hover:text-white transition-colors no-underline">&#128197; Book a Free Call</a></li>
+          <li><a href="https://wa.me/919545550083" target="_blank" rel="noopener" style="color:#25d366;" class="text-sm hover:text-white transition-colors no-underline">&#128172; WhatsApp Us</a></li>
+          <li><a href="mailto:hello@itgyani.com" style="color:#64748b;" class="text-sm hover:text-white transition-colors no-underline">&#9993; hello@itgyani.com</a></li>
+        </ul>
+      </div>
+    </div>
+    <div style="border-top:1px solid #1e2d45;" class="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p class="text-sm" style="color:#374151;">&copy; 2026 ITGYANI. All rights reserved.</p>
+      <p class="text-xs" style="color:#374151;">Built with AI &middot; Delivered with care &middot; Trusted by Indian businesses</p>
+    </div>
+  </div>
+</footer>
+
+<!-- STICKY WHATSAPP BUBBLE -->
+<a href="https://wa.me/919545550083" target="_blank" rel="noopener" class="wa-bubble" title="Chat on WhatsApp">
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="white">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+  </svg>
+</a>
+
+</body>
+</html>
