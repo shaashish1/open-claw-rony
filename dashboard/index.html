@@ -51,10 +51,10 @@
     <div class="progress-bar mt-2"><div class="progress-fill" style="width:1%"></div></div>
   </div>
   <div class="card p-4">
-    <div class="section-title">Engine 2 — Apps</div>
-    <div class="text-2xl font-bold text-white">0</div>
-    <div class="text-xs text-slate-400 mt-1">Apps live this week</div>
-    <div class="progress-bar mt-2"><div class="progress-fill" style="width:5%"></div></div>
+    <div class="section-title">ChartInk Alerts</div>
+    <div class="text-2xl font-bold text-green-400">15</div>
+    <div class="text-xs text-slate-400 mt-1">Alerts live → OpenAlgo webhooks</div>
+    <div class="progress-bar mt-2"><div class="progress-fill" style="width:100%"></div></div>
   </div>
   <div class="card p-4">
     <div class="section-title">Sprint 1 — Tasks</div>
@@ -63,10 +63,10 @@
     <div class="progress-bar mt-2"><div class="progress-fill" style="width:15%"></div></div>
   </div>
   <div class="card p-4">
-    <div class="section-title">Agents Active</div>
+    <div class="section-title">Strategies Running</div>
     <div class="text-2xl font-bold text-green-400">10</div>
-    <div class="text-xs text-slate-400 mt-1">of 14 deployed</div>
-    <div class="progress-bar mt-2"><div class="progress-fill" style="width:71%"></div></div>
+    <div class="text-xs text-slate-400 mt-1">Yukti strategies — analyze mode</div>
+    <div class="progress-bar mt-2"><div class="progress-fill" style="width:100%"></div></div>
   </div>
 </div>
 
@@ -126,7 +126,15 @@
       </div>
       <div class="flex items-center justify-between p-2 rounded-lg bg-slate-800">
         <span class="text-slate-300">YUKTI-3: OpenAlgo Audit</span>
-        <span class="text-xs badge-active px-2 py-0.5 rounded">Done</span>
+        <span class="text-xs badge-active px-2 py-0.5 rounded">Done ✓</span>
+      </div>
+      <div class="flex items-center justify-between p-2 rounded-lg bg-slate-800">
+        <span class="text-slate-300">CI Alerts: 10 webhooks → OpenAlgo</span>
+        <span class="text-xs badge-active px-2 py-0.5 rounded">Done ✓</span>
+      </div>
+      <div class="flex items-center justify-between p-2 rounded-lg bg-slate-800">
+        <span class="text-slate-300">Security: Secrets purged from git</span>
+        <span class="text-xs badge-active px-2 py-0.5 rounded">Done ✓</span>
       </div>
       <a href="https://itgyani.atlassian.net/jira/software/projects/IT/boards/7" target="_blank"
          class="block text-center mt-2 py-2 rounded-lg bg-indigo-900 hover:bg-indigo-800 text-indigo-200 text-xs font-semibold transition">
@@ -244,7 +252,8 @@ const systems = [
   {name:'ITGYANI Dashboard',url:'https://dashboard.itgyani.com',desc:'This page',status:'up'},
   {name:'CryptoGyani',url:'https://cryptogyani.com',desc:'Crypto Portal',status:'up'},
   {name:'n8n Postgres',url:null,desc:'DB healthy',status:'up'},
-  {name:'Strategies (10)',url:null,desc:'Running in analyze mode',status:'up'},
+  {name:'10 Yukti Strategies',url:null,desc:'Analyze mode — cron watchdog active',status:'up'},
+  {name:'ChartInk (15 alerts)',url:'https://chartink.com/alert_dashboard',desc:'All webhooks → OpenAlgo',status:'up'},
 ];
 
 const sysContainer = document.getElementById('systems');
