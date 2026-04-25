@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
-ITGYANI Strategy Auto-Starter
-Runs at container startup via /app/entrypoint_patch.sh
-Injects and starts all 10 Yukti strategies into OpenAlgo's Python runner.
+ITGYANI Strategy Auto-Starter v2
+Starts all 10 Yukti strategies via OpenAlgo's internal /python/start/<id> route.
+Uses the proper in-process call so strategies are tracked in RUNNING_STRATEGIES.
+Called from app.py YuktiAutostart thread on container boot.
 """
 import sys, os, shutil, time
 from pathlib import Path
@@ -12,85 +13,82 @@ os.chdir("/app")
 sys.path.insert(0, "/app")
 
 STRATEGIES = [
-    ("strategy_01", "Yukti_vwap_rsi_ICICIBANK_5m"),
-    ("strategy_02", "Yukti_ema_ribbon_HDFCBANK_5m"),
-    ("strategy_03", "Yukti_supertrend_atr_expansion_RELIANCE_15m"),
-    ("strategy_04", "Yukti_bb_rsi_SBIN_5m"),
-    ("strategy_05", "Yukti_macd_rsi_combo_TCS_15m"),
-    ("strategy_06", "Yukti_orb_scalper_NIFTY_15m"),
-    ("strategy_07", "Yukti_stochastic_momentum_BAJFINANCE_5m"),
-    ("strategy_08", "Yukti_donchian_volume_breakout_LT_5m"),
-    ("strategy_09", "Yukti_ichimoku_rsi_INFY_15m"),
-    ("strategy_10", "Yukti_adx_di_trend_AXISBANK_5m"),
+    "strategy_01", "strategy_02", "strategy_03", "strategy_04", "strategy_05",
+    "strategy_06", "strategy_07", "strategy_08", "strategy_09", "strategy_10",
 ]
 
-def wait_for_app(max_wait=60):
-    """Wait for OpenAlgo Flask app to be ready"""
+def wait_for_app(max_wait=30):
     import urllib.request
     for i in range(max_wait):
         try:
-            urllib.request.urlopen("http://127.0.0.1:5000", timeout=2)
-            print(f"[autostart] OpenAlgo ready after {i}s")
+            urllib.request.urlopen("http://127.0.0.1:5000/api/v1/funds", timeout=2)
             return True
         except:
             time.sleep(1)
-    print("[autostart] WARNING: OpenAlgo not responding, starting anyway")
-    return False
+    return True  # proceed anyway after timeout
 
 def main():
-    print(f"[autostart] Starting at {datetime.now().isoformat()}")
-    
-    # Wait for Flask to be ready
-    wait_for_app(30)
-    time.sleep(3)  # Extra buffer
-    
-    from blueprints import python_strategy as ps_module
+    print(f"[autostart] {datetime.now().isoformat()} Starting")
+    wait_for_app(20)
+    time.sleep(5)
+
+    try:
+        from blueprints.python_strategy import (
+            start_strategy_process,
+            STRATEGY_CONFIGS,
+            RUNNING_STRATEGIES,
+        )
+    except Exception as e:
+        print(f"[autostart] Import error: {e}")
+        return
 
     scripts_dir = Path("/app/strategies/scripts")
-    yukti_dir = Path("/app/strategies/yukti")
-    logs_dir = Path("/app/log/strategies")
-    scripts_dir.mkdir(parents=True, exist_ok=True)
-    logs_dir.mkdir(parents=True, exist_ok=True)
+    yukti_dir   = Path("/app/strategies/yukti")
+    logs_dir    = Path("/app/log/strategies")
+    for d in [scripts_dir, logs_dir]:
+        d.mkdir(parents=True, exist_ok=True)
 
-    launched = []
-    for sid, name in STRATEGIES:
+    launched = 0
+    for sid in STRATEGIES:
         src = yukti_dir / f"{sid}.py"
         dst = scripts_dir / f"{sid}.py"
-        
+
         if not src.exists():
-            print(f"[autostart] SKIP {sid} — file not found")
+            print(f"[autostart] SKIP {sid} — not found")
             continue
-        
+
         shutil.copy2(src, dst)
         os.chmod(dst, 0o755)
-        
-        ps_module.STRATEGY_CONFIGS[sid] = {
-            "name": sid,
-            "file_path": str(dst),
-            "filename": f"{sid}.py",
-            "user_id": "ashish.sharma14@gmail.com",
-            "exchange": "NSE",
-            "start_time": "09:15",
-            "stop_time": "15:15",
-            "squareoff_time": "15:10",
-            "is_active": True,
-            "created_at": datetime.now().isoformat()
-        }
-        
-        # Skip if already running
-        if sid in ps_module.RUNNING_STRATEGIES:
-            print(f"[autostart] {sid} already running, skipping")
+
+        if sid in RUNNING_STRATEGIES:
+            print(f"[autostart] {sid} already running")
             continue
-        
-        success, msg = ps_module.start_strategy_process(sid)
-        status = "✅" if success else "❌"
+
+        # Register in STRATEGY_CONFIGS exactly as OpenAlgo expects
+        STRATEGY_CONFIGS[sid] = {
+            "name":           sid,
+            "file_path":      str(dst),
+            "filename":       f"{sid}.py",
+            "user_id":        "ashish.sharma14@gmail.com",
+            "exchange":       "NSE",
+            "start_time":     "09:15",
+            "stop_time":      "15:15",
+            "squareoff_time": "15:10",
+            "is_active":      True,
+            "is_running":     False,
+            "pid":            None,
+            "created_at":     datetime.now().isoformat(),
+        }
+
+        ok, msg = start_strategy_process(sid)
+        status = "OK" if ok else "FAIL"
         print(f"[autostart] {status} {sid}: {msg}")
-        if success:
-            launched.append(sid)
+        if ok:
+            launched += 1
         time.sleep(0.5)
-    
-    print(f"\n[autostart] Launched {len(launched)}/10 strategies")
-    print(f"[autostart] Running: {list(ps_module.RUNNING_STRATEGIES.keys())}")
+
+    print(f"[autostart] Launched {launched}/10")
+    print(f"[autostart] Running: {list(RUNNING_STRATEGIES.keys())}")
 
 if __name__ == "__main__":
     main()

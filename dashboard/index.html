@@ -64,8 +64,8 @@
   </div>
   <div class="card p-4">
     <div class="section-title">Strategies Running</div>
-    <div class="text-2xl font-bold text-green-400">10</div>
-    <div class="text-xs text-slate-400 mt-1">Yukti strategies — analyze mode</div>
+    <div class="text-2xl font-bold text-green-400">10 ✓</div>
+    <div class="text-xs text-slate-400 mt-1">Yukti — analyze mode — auto-start on boot</div>
     <div class="progress-bar mt-2"><div class="progress-fill" style="width:100%"></div></div>
   </div>
 </div>
@@ -252,8 +252,9 @@ const systems = [
   {name:'ITGYANI Dashboard',url:'https://dashboard.itgyani.com',desc:'This page',status:'up'},
   {name:'CryptoGyani',url:'https://cryptogyani.com',desc:'Crypto Portal',status:'up'},
   {name:'n8n Postgres',url:null,desc:'DB healthy',status:'up'},
-  {name:'10 Yukti Strategies',url:null,desc:'Analyze mode — cron watchdog active',status:'up'},
-  {name:'ChartInk (15 alerts)',url:'https://chartink.com/alert_dashboard',desc:'All webhooks → OpenAlgo',status:'up'},
+  {name:'10 Yukti Strategies',url:'https://openalgo.cryptogyani.com/python',desc:'Analyze mode — auto-start on boot ✓',status:'up'},
+  {name:'ChartInk (15 alerts)',url:'https://chartink.com/alert_dashboard',desc:'10 webhooks → OpenAlgo ✓',status:'up'},
+  {name:'Strategy Watchdog',url:null,desc:'Cron every 10min — auto-restart',status:'up'},
 ];
 
 const sysContainer = document.getElementById('systems');
