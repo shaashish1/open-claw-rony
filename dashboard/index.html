@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>ITGYANI OS v3 — Operations Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={darkMode:'class'}</script>
+<style>
+  body{background:#0f172a;color:#e2e8f0;font-family:'Inter',sans-serif}
+  .card{background:#1e293b;border:1px solid #334155;border-radius:12px}
+  .badge-active{background:#14532d;color:#4ade80;border:1px solid #16a34a}
+  .badge-standby{background:#1e1b4b;color:#818cf8;border:1px solid #4f46e5}
+  .badge-building{background:#78350f;color:#fbbf24;border:1px solid #d97706}
+  .pulse{animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+  .status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+  .dot-green{background:#4ade80}
+  .dot-yellow{background:#fbbf24}
+  .dot-blue{background:#818cf8}
+  a{color:#818cf8}a:hover{color:#a5b4fc}
+  .section-title{font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:#64748b;font-weight:700;margin-bottom:12px}
+  .progress-bar{height:6px;background:#1e293b;border-radius:3px;overflow:hidden}
+  .progress-fill{height:100%;background:linear-gradient(90deg,#6366f1,#8b5cf6);border-radius:3px;transition:width 0.5s}
+</style>
+</head>
+<body class="min-h-screen p-4 md:p-6">
+
+<!-- Header -->
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <div class="flex items-center gap-3">
+      <div class="w-3 h-3 bg-green-400 rounded-full pulse"></div>
+      <h1 class="text-xl font-bold text-white">ITGYANI OS v3</h1>
+      <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-900 text-indigo-300 border border-indigo-700">Operations Dashboard</span>
+    </div>
+    <p class="text-slate-400 text-sm mt-1">14 Agents · Sprint 1 Active · ₹0 → ₹1L Target</p>
+  </div>
+  <div class="text-right">
+    <div id="clock" class="text-white font-mono text-lg font-bold"></div>
+    <div class="text-slate-400 text-xs" id="date-str"></div>
+  </div>
+</div>
+
+<!-- KPI Row -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+  <div class="card p-4">
+    <div class="section-title">Engine 1 — Revenue</div>
+    <div class="text-2xl font-bold text-white">₹0</div>
+    <div class="text-xs text-slate-400 mt-1">Target: ₹1L / month</div>
+    <div class="progress-bar mt-2"><div class="progress-fill" style="width:1%"></div></div>
+  </div>
+  <div class="card p-4">
+    <div class="section-title">Engine 2 — Apps</div>
+    <div class="text-2xl font-bold text-white">0</div>
+    <div class="text-xs text-slate-400 mt-1">Apps live this week</div>
+    <div class="progress-bar mt-2"><div class="progress-fill" style="width:5%"></div></div>
+  </div>
+  <div class="card p-4">
+    <div class="section-title">Sprint 1 — Tasks</div>
+    <div class="text-2xl font-bold text-white">21</div>
+    <div class="text-xs text-slate-400 mt-1">Stories in board</div>
+    <div class="progress-bar mt-2"><div class="progress-fill" style="width:15%"></div></div>
+  </div>
+  <div class="card p-4">
+    <div class="section-title">Agents Active</div>
+    <div class="text-2xl font-bold text-green-400">10</div>
+    <div class="text-xs text-slate-400 mt-1">of 14 deployed</div>
+    <div class="progress-bar mt-2"><div class="progress-fill" style="width:71%"></div></div>
+  </div>
+</div>
+
+<!-- Main Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+
+  <!-- Agent Status — 2/3 width -->
+  <div class="lg:col-span-2 card p-4">
+    <div class="section-title">Agent Team — 14 Agents</div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="agents">
+    </div>
+  </div>
+
+  <!-- System Health — 1/3 width -->
+  <div class="card p-4">
+    <div class="section-title">System Health</div>
+    <div class="space-y-2" id="systems">
+    </div>
+
+    <div class="mt-4 pt-4 border-t border-slate-700">
+      <div class="section-title">Quick Links</div>
+      <div class="space-y-1 text-sm">
+        <div><a href="https://dashboard.itgyani.com" target="_blank">↗ Dashboard</a></div>
+        <div><a href="https://n8n.itgyani.com" target="_blank">↗ n8n Automation</a></div>
+        <div><a href="https://openalgo.cryptogyani.com" target="_blank">↗ OpenAlgo Trading</a></div>
+        <div><a href="https://itgyani.atlassian.net/jira/software/projects/IT/boards/7" target="_blank">↗ Jira Sprint 1</a></div>
+        <div><a href="https://cryptogyani.com" target="_blank">↗ CryptoGyani</a></div>
+        <div><a href="https://kharadionline.com" target="_blank">↗ Kharadi Online</a></div>
+        <div><a href="https://learn.theemployeefactory.com" target="_blank">↗ OpenMAIC LMS</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Row: Sprint + MOM -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+  <!-- Sprint 1 -->
+  <div class="card p-4">
+    <div class="section-title">Sprint 1 — Week1 Foundation</div>
+    <div class="space-y-2 text-sm">
+      <div class="flex items-center justify-between p-2 rounded-lg bg-slate-800">
+        <span class="text-slate-300">IT-20: ITGYANI Service Page</span>
+        <span class="text-xs badge-building px-2 py-0.5 rounded">In Progress</span>
+      </div>
+      <div class="flex items-center justify-between p-2 rounded-lg bg-slate-800">
+        <span class="text-slate-300">IT-21: Cold Email Outreach 100 leads</span>
+        <span class="text-xs badge-building px-2 py-0.5 rounded">In Progress</span>
+      </div>
+      <div class="flex items-center justify-between p-2 rounded-lg bg-slate-800">
+        <span class="text-slate-300">CG-54: CryptoGyani SEO Launch</span>
+        <span class="text-xs badge-building px-2 py-0.5 rounded">In Progress</span>
+      </div>
+      <div class="flex items-center justify-between p-2 rounded-lg bg-slate-800">
+        <span class="text-slate-300">TEF-17: OpenMAIC Go-Live</span>
+        <span class="text-xs badge-standby px-2 py-0.5 rounded">Pending</span>
+      </div>
+      <div class="flex items-center justify-between p-2 rounded-lg bg-slate-800">
+        <span class="text-slate-300">YUKTI-3: OpenAlgo Audit</span>
+        <span class="text-xs badge-active px-2 py-0.5 rounded">Done</span>
+      </div>
+      <a href="https://itgyani.atlassian.net/jira/software/projects/IT/boards/7" target="_blank"
+         class="block text-center mt-2 py-2 rounded-lg bg-indigo-900 hover:bg-indigo-800 text-indigo-200 text-xs font-semibold transition">
+        View All 21 Stories in Jira →
+      </a>
+    </div>
+  </div>
+
+  <!-- MOM Log -->
+  <div class="card p-4">
+    <div class="flex items-center justify-between mb-3">
+      <div class="section-title mb-0">MOM — Minutes of Meeting</div>
+      <button onclick="showAddMOM()" class="text-xs px-3 py-1 rounded-lg bg-indigo-700 hover:bg-indigo-600 text-white transition">+ Add MOM</button>
+    </div>
+    <div id="mom-log">
+      <div class="text-slate-400 text-sm text-center py-6">
+        No meetings recorded yet.<br>
+        <span class="text-xs text-slate-500">MOM stored in /var/www/dashboard/mom.json</span>
+      </div>
+    </div>
+    <div id="add-mom-form" class="hidden mt-3 p-3 bg-slate-800 rounded-lg text-sm space-y-2">
+      <div class="text-slate-300 font-semibold">Add Meeting Notes</div>
+      <input id="mom-title" class="w-full bg-slate-700 text-white rounded px-3 py-2 text-sm" placeholder="Meeting title"/>
+      <textarea id="mom-notes" class="w-full bg-slate-700 text-white rounded px-3 py-2 text-sm h-20" placeholder="Key decisions & action items..."></textarea>
+      <div class="flex gap-2">
+        <button onclick="saveMOM()" class="flex-1 bg-indigo-700 hover:bg-indigo-600 text-white rounded py-1.5 text-xs font-semibold">Save</button>
+        <button onclick="hideMOM()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white rounded py-1.5 text-xs">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Communication Log -->
+<div class="card p-4 mt-4">
+  <div class="section-title">Communication Log — All Channels</div>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+    <div class="p-3 bg-slate-800 rounded-lg">
+      <div class="text-indigo-300 font-semibold mb-1">📱 Telegram</div>
+      <div class="text-slate-400 text-xs">@cryptogyanibot — Rony COO</div>
+      <div class="text-slate-400 text-xs">@Job_Alert_Rony_Bot — ARJUN alerts</div>
+      <div class="text-slate-400 text-xs">@itgyanibot — n8n workflows</div>
+    </div>
+    <div class="p-3 bg-slate-800 rounded-lg">
+      <div class="text-indigo-300 font-semibold mb-1">📧 Email (8 accounts)</div>
+      <div class="text-slate-400 text-xs">8,031 emails consolidated</div>
+      <div class="text-slate-400 text-xs">MAYA handling all inboxes</div>
+      <div class="text-slate-400 text-xs"><a href="https://dashboard.itgyani.com/email">View Email Feed →</a></div>
+    </div>
+    <div class="p-3 bg-slate-800 rounded-lg">
+      <div class="text-indigo-300 font-semibold mb-1">📋 Jira</div>
+      <div class="text-slate-400 text-xs">7 Projects: IT, CG, YUKTI, TEF, KO...</div>
+      <div class="text-slate-400 text-xs">Sprint 1: 21 stories active</div>
+      <div class="text-slate-400 text-xs"><a href="https://itgyani.atlassian.net" target="_blank">Open Jira →</a></div>
+    </div>
+  </div>
+</div>
+
+<div class="text-center text-slate-600 text-xs mt-6 pb-4">
+  ITGYANI OS v3 · Built by Rony (COO) · Auto-refreshes every 60s · Ashish Sharma CEO
+</div>
+
+<script>
+// Clock
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleTimeString('en-IN', {timeZone:'Asia/Calcutta',hour12:true});
+  document.getElementById('date-str').textContent = now.toLocaleDateString('en-IN', {timeZone:'Asia/Calcutta',weekday:'long',day:'numeric',month:'short',year:'numeric'});
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// Auto refresh every 60s
+setTimeout(() => location.reload(), 60000);
+
+// Agents data
+const agents = [
+  {name:'RONY',role:'COO',focus:'Strategy & Ops',status:'active'},
+  {name:'MAYA',role:'CMO',focus:'Email & Marketing',status:'active'},
+  {name:'ARJUN',role:'InfoSec',focus:'Security & Compliance',status:'active'},
+  {name:'PRIYA',role:'SEO Lead',focus:'CryptoGyani SEO',status:'active'},
+  {name:'ZARA',role:'Sales',focus:'Cold Outreach',status:'active'},
+  {name:'FELIX',role:'Support',focus:'Customer Success',status:'standby'},
+  {name:'DISHA',role:'PM',focus:'Sprint 1 Tracking',status:'active'},
+  {name:'KABIR',role:'DevOps',focus:'VPS Infrastructure',status:'active'},
+  {name:'NIKKI',role:'Designer',focus:'UI/UX QA',status:'standby'},
+  {name:'VIKRAM',role:'Analytics',focus:'Revenue Tracking',status:'active'},
+  {name:'ROHAN',role:'Finance',focus:'P&L Dashboard',status:'active'},
+  {name:'TARA',role:'Research',focus:'Demand Validation',status:'active'},
+  {name:'KIRAN',role:'HR',focus:'Team Ops',status:'standby'},
+  {name:'RAVI',role:'RevOps',focus:'Razorpay Setup',status:'active'},
+];
+
+const agentContainer = document.getElementById('agents');
+agents.forEach(a => {
+  const badgeClass = a.status === 'active' ? 'badge-active' : 'badge-standby';
+  const dotClass = a.status === 'active' ? 'dot-green' : 'dot-blue';
+  agentContainer.innerHTML += `
+    <div class="flex items-center justify-between p-3 rounded-lg bg-slate-800 hover:bg-slate-700 transition">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="status-dot ${dotClass}"></span>
+          <span class="font-bold text-white text-sm">${a.name}</span>
+          <span class="text-xs text-slate-500">${a.role}</span>
+        </div>
+        <div class="text-xs text-slate-400 mt-0.5 ml-3.5">${a.focus}</div>
+      </div>
+      <span class="text-xs px-2 py-0.5 rounded-full ${badgeClass}">${a.status}</span>
+    </div>`;
+});
+
+// Systems
+const systems = [
+  {name:'OpenAlgo',url:'https://openalgo.cryptogyani.com',desc:'Trading Platform',status:'up'},
+  {name:'n8n',url:'https://n8n.itgyani.com',desc:'Automation Engine',status:'up'},
+  {name:'ITGYANI Dashboard',url:'https://dashboard.itgyani.com',desc:'This page',status:'up'},
+  {name:'CryptoGyani',url:'https://cryptogyani.com',desc:'Crypto Portal',status:'up'},
+  {name:'n8n Postgres',url:null,desc:'DB healthy',status:'up'},
+  {name:'Strategies (10)',url:null,desc:'Running in analyze mode',status:'up'},
+];
+
+const sysContainer = document.getElementById('systems');
+systems.forEach(s => {
+  const dot = s.status === 'up' ? 'bg-green-400' : 'bg-red-400';
+  const link = s.url ? `<a href="${s.url}" target="_blank" class="hover:underline">${s.name}</a>` : `<span>${s.name}</span>`;
+  sysContainer.innerHTML += `
+    <div class="flex items-center justify-between py-2 border-b border-slate-700 last:border-0">
+      <div>
+        <div class="text-sm text-slate-200">${link}</div>
+        <div class="text-xs text-slate-500">${s.desc}</div>
+      </div>
+      <div class="w-2 h-2 rounded-full ${dot} ${s.status==='up'?'pulse':''}"></div>
+    </div>`;
+});
+
+// MOM functions
+let meetings = [];
+try {
+  const stored = localStorage.getItem('itgyani_mom');
+  if (stored) meetings = JSON.parse(stored);
+} catch(e){}
+
+function renderMOM() {
+  const container = document.getElementById('mom-log');
+  if (meetings.length === 0) {
+    container.innerHTML = '<div class="text-slate-400 text-sm text-center py-6">No meetings recorded yet.<br><span class="text-xs text-slate-500">Click "+ Add MOM" to log a meeting</span></div>';
+    return;
+  }
+  container.innerHTML = meetings.slice(-5).reverse().map(m => `
+    <div class="p-2 mb-2 bg-slate-800 rounded-lg text-xs">
+      <div class="flex justify-between text-slate-300 font-semibold mb-1">
+        <span>${m.title}</span><span class="text-slate-500">${m.date}</span>
+      </div>
+      <div class="text-slate-400">${m.notes}</div>
+    </div>`).join('');
+}
+
+function showAddMOM() { document.getElementById('add-mom-form').classList.remove('hidden'); }
+function hideMOM() { document.getElementById('add-mom-form').classList.add('hidden'); }
+function saveMOM() {
+  const title = document.getElementById('mom-title').value.trim();
+  const notes = document.getElementById('mom-notes').value.trim();
+  if (!title) return;
+  meetings.push({title, notes, date: new Date().toLocaleDateString('en-IN')});
+  localStorage.setItem('itgyani_mom', JSON.stringify(meetings));
+  renderMOM();
+  hideMOM();
+  document.getElementById('mom-title').value = '';
+  document.getElementById('mom-notes').value = '';
+}
+
+renderMOM();
+</script>
+</body>
+</html>
