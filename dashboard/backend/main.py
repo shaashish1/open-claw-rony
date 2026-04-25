@@ -719,6 +719,59 @@ async def ops_mom_post(request: Request):
 # ─── END OPS API ─────────────────────────────────────────────────────────────
 
 
+
+
+# --- JIRA SPRINT API ---------------------------------------------------------
+import base64 as _b64jira
+
+_jira_cache = {"ts": 0, "data": []}
+
+def _fetch_jira_sprint():
+    global _jira_cache
+    import time as _tj
+    if _tj.time() - _jira_cache["ts"] < 120 and _jira_cache["data"]:
+        return _jira_cache["data"]
+    try:
+        import os as _osj, urllib.request as _urj, json as _jj
+        email = _osj.environ.get("JIRA_EMAIL", "ashish@itgyani.com")
+        token = _osj.environ.get("JIRA_TOKEN", "")
+        domain = _osj.environ.get("JIRA_DOMAIN", "itgyani.atlassian.net")
+        if not token:
+            return []
+        import base64 as _b64j2
+        creds = _b64j2.b64encode(f"{email}:{token}".encode()).decode()
+        url = f"https://{domain}/rest/agile/1.0/board/7/issue?maxResults=30&fields=summary,status,assignee,priority"
+        req = _urj.Request(url, headers={"Authorization": f"Basic {creds}", "Accept": "application/json"})
+        resp = _urj.urlopen(req, timeout=10)
+        raw = _jj.loads(resp.read())
+        issues = []
+        for issue in raw.get("issues", []):
+            f = issue.get("fields", {})
+            status = f.get("status", {}).get("name", "To Do")
+            cat = f.get("status", {}).get("statusCategory", {}).get("key", "new")
+            issues.append({
+                "key": issue["key"],
+                "summary": f.get("summary", "")[:60],
+                "status": status,
+                "status_cat": cat,
+                "assignee": (f.get("assignee") or {}).get("displayName", "Unassigned"),
+                "priority": (f.get("priority") or {}).get("name", "Medium"),
+            })
+        _jira_cache = {"ts": _tj.time(), "data": issues}
+        return issues
+    except Exception as e:
+        return [{"key": "ERR", "summary": f"Jira: {str(e)[:60]}", "status": "Error", "status_cat": "new", "assignee": "-", "priority": "-"}]
+
+
+@app.get("/api/ops/jira-sprint")
+async def ops_jira_sprint():
+    from fastapi.responses import JSONResponse
+    issues = _fetch_jira_sprint()
+    done = sum(1 for i in issues if i["status_cat"] == "done")
+    inp = sum(1 for i in issues if i["status_cat"] == "indeterminate")
+    return JSONResponse({"issues": issues, "total": len(issues), "done": done, "in_progress": inp})
+
+# --- END JIRA API ------------------------------------------------------------
 # In Docker: /app/frontend | Locally: ../frontend
 _base = Path(__file__).parent.parent
 if Path("/app/frontend").exists():
