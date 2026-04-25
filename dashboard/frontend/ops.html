@@ -1,313 +1,410 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>ITGYANI OS v3 — Operations Dashboard</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<script>tailwind.config={darkMode:'class'}</script>
 <style>
-  body{background:#0f172a;color:#e2e8f0;font-family:'Inter',sans-serif}
-  .card{background:#1e293b;border:1px solid #334155;border-radius:12px}
-  .badge-active{background:#14532d;color:#4ade80;border:1px solid #16a34a}
-  .badge-standby{background:#1e1b4b;color:#818cf8;border:1px solid #4f46e5}
-  .badge-building{background:#78350f;color:#fbbf24;border:1px solid #d97706}
-  .pulse{animation:pulse 2s infinite}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
-  .status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
-  .dot-green{background:#4ade80}
-  .dot-yellow{background:#fbbf24}
-  .dot-blue{background:#818cf8}
-  a{color:#818cf8}a:hover{color:#a5b4fc}
-  .section-title{font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:#64748b;font-weight:700;margin-bottom:12px}
-  .progress-bar{height:6px;background:#1e293b;border-radius:3px;overflow:hidden}
-  .progress-fill{height:100%;background:linear-gradient(90deg,#6366f1,#8b5cf6);border-radius:3px;transition:width 0.5s}
+:root{--bg:#0f172a;--card:#1e293b;--border:#334155;--muted:#64748b;--text:#e2e8f0}
+body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px}
+.badge-active{background:#14532d;color:#4ade80;border:1px solid #16a34a}
+.badge-standby{background:#1e1b4b;color:#818cf8;border:1px solid #4f46e5}
+.badge-building{background:#78350f;color:#fbbf24;border:1px solid #d97706}
+.badge-done{background:#14532d;color:#4ade80;border:1px solid #16a34a}
+.badge-blocked{background:#7f1d1d;color:#f87171;border:1px solid #dc2626}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.pulse{animation:pulse 2s infinite}
+a{color:#818cf8}a:hover{color:#a5b4fc}
+.section-title{font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:10px}
+.progress-bar{height:5px;background:#0f172a;border-radius:3px;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;background:linear-gradient(90deg,#6366f1,#8b5cf6);border-radius:3px;transition:width .6s}
+.spinner{width:14px;height:14px;border:2px solid #334155;border-top-color:#818cf8;border-radius:50%;animation:spin .8s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dot-green{background:#4ade80}.dot-red{background:#f87171}.dot-yellow{background:#fbbf24}.dot-blue{background:#818cf8}
+input,textarea{background:#0f172a;border:1px solid var(--border);border-radius:6px;color:var(--text);padding:8px 12px;width:100%;font-size:.875rem;outline:none}
+input:focus,textarea:focus{border-color:#6366f1}
+button.btn-primary{background:#4f46e5;color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:.8rem;cursor:pointer;font-weight:600}
+button.btn-primary:hover{background:#4338ca}
+button.btn-ghost{background:#1e293b;color:#94a3b8;border:1px solid #334155;border-radius:6px;padding:6px 14px;font-size:.8rem;cursor:pointer}
+button.btn-ghost:hover{background:#334155}
 </style>
 </head>
-<body class="min-h-screen p-4 md:p-6">
+<body class="p-4 md:p-6">
 
-<!-- Header -->
-<div class="flex items-center justify-between mb-6">
-  <div>
-    <div class="flex items-center gap-3">
-      <div class="w-3 h-3 bg-green-400 rounded-full pulse"></div>
-      <h1 class="text-xl font-bold text-white">ITGYANI OS v3</h1>
-      <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-900 text-indigo-300 border border-indigo-700">Operations Dashboard</span>
-    </div>
-    <p class="text-slate-400 text-sm mt-1">14 Agents · Sprint 1 Active · ₹0 → ₹1L Target</p>
+<!-- HEADER -->
+<div class="flex items-center justify-between mb-5">
+  <div class="flex items-center gap-3">
+    <div class="w-2.5 h-2.5 bg-green-400 rounded-full pulse"></div>
+    <h1 class="text-lg font-bold text-white">ITGYANI OS v3</h1>
+    <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-900/60 text-indigo-300 border border-indigo-700/50">Ops Dashboard</span>
+    <span id="refresh-indicator" class="text-xs text-slate-500 hidden"><span class="spinner"></span></span>
   </div>
   <div class="text-right">
-    <div id="clock" class="text-white font-mono text-lg font-bold"></div>
-    <div class="text-slate-400 text-xs" id="date-str"></div>
+    <div id="clock" class="text-white font-mono font-bold"></div>
+    <div id="last-updated" class="text-slate-500 text-xs mt-0.5">Loading…</div>
   </div>
 </div>
 
-<!-- KPI Row -->
-<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+<!-- KPI ROW -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
   <div class="card p-4">
     <div class="section-title">Engine 1 — Revenue</div>
     <div class="text-2xl font-bold text-white">₹0</div>
-    <div class="text-xs text-slate-400 mt-1">Target: ₹1L / month</div>
-    <div class="progress-bar mt-2"><div class="progress-fill" style="width:1%"></div></div>
+    <div class="text-xs text-slate-500 mt-1">Target ₹1L/mo</div>
+    <div class="progress-bar"><div class="progress-fill" style="width:1%"></div></div>
+  </div>
+  <div class="card p-4">
+    <div class="section-title">Yukti Strategies</div>
+    <div id="kpi-strategies" class="text-2xl font-bold text-green-400"><span class="spinner"></span></div>
+    <div class="text-xs text-slate-500 mt-1" id="kpi-strat-label">Analyze mode</div>
+    <div class="progress-bar"><div id="kpi-strat-bar" class="progress-fill" style="width:0%"></div></div>
   </div>
   <div class="card p-4">
     <div class="section-title">ChartInk Alerts</div>
-    <div class="text-2xl font-bold text-green-400">15</div>
-    <div class="text-xs text-slate-400 mt-1">Alerts live → OpenAlgo webhooks</div>
-    <div class="progress-bar mt-2"><div class="progress-fill" style="width:100%"></div></div>
+    <div id="kpi-chartink" class="text-2xl font-bold text-green-400"><span class="spinner"></span></div>
+    <div class="text-xs text-slate-500 mt-1">→ OpenAlgo webhooks</div>
+    <div class="progress-bar"><div id="kpi-ci-bar" class="progress-fill" style="width:0%"></div></div>
   </div>
   <div class="card p-4">
-    <div class="section-title">Sprint 1 — Tasks</div>
-    <div class="text-2xl font-bold text-white">21</div>
-    <div class="text-xs text-slate-400 mt-1">Stories in board</div>
-    <div class="progress-bar mt-2"><div class="progress-fill" style="width:15%"></div></div>
-  </div>
-  <div class="card p-4">
-    <div class="section-title">Strategies Running</div>
-    <div class="text-2xl font-bold text-green-400">10 ✓</div>
-    <div class="text-xs text-slate-400 mt-1">Yukti — analyze mode — auto-start on boot</div>
-    <div class="progress-bar mt-2"><div class="progress-fill" style="width:100%"></div></div>
+    <div class="section-title">Sprint 1</div>
+    <div id="kpi-sprint" class="text-2xl font-bold text-white"><span class="spinner"></span></div>
+    <div class="text-xs text-slate-500 mt-1" id="kpi-sprint-label">Stories</div>
+    <div class="progress-bar"><div id="kpi-sprint-bar" class="progress-fill" style="width:0%"></div></div>
   </div>
 </div>
 
-<!-- Main Grid -->
+<!-- MAIN GRID -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
 
-  <!-- Agent Status — 2/3 width -->
+  <!-- AGENTS 2/3 -->
   <div class="lg:col-span-2 card p-4">
-    <div class="section-title">Agent Team — 14 Agents</div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="agents">
-    </div>
+    <div class="section-title">Team — 14 Agents</div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="agents-grid"></div>
   </div>
 
-  <!-- System Health — 1/3 width -->
+  <!-- SYSTEM HEALTH 1/3 -->
   <div class="card p-4">
     <div class="section-title">System Health</div>
-    <div class="space-y-2" id="systems">
+    <div id="systems-list" class="space-y-0">
+      <div class="text-slate-500 text-sm py-4 text-center"><span class="spinner"></span></div>
     </div>
-
-    <div class="mt-4 pt-4 border-t border-slate-700">
+    <div class="mt-4 pt-3 border-t border-slate-700">
       <div class="section-title">Quick Links</div>
       <div class="space-y-1 text-sm">
-        <div><a href="https://dashboard.itgyani.com" target="_blank">↗ Dashboard</a></div>
-        <div><a href="https://n8n.itgyani.com" target="_blank">↗ n8n Automation</a></div>
-        <div><a href="https://openalgo.cryptogyani.com" target="_blank">↗ OpenAlgo Trading</a></div>
-        <div><a href="https://itgyani.atlassian.net/jira/software/projects/IT/boards/7" target="_blank">↗ Jira Sprint 1</a></div>
-        <div><a href="https://cryptogyani.com" target="_blank">↗ CryptoGyani</a></div>
-        <div><a href="https://kharadionline.com" target="_blank">↗ Kharadi Online</a></div>
-        <div><a href="https://learn.theemployeefactory.com" target="_blank">↗ OpenMAIC LMS</a></div>
+        <div>↗ <a href="https://dashboard.itgyani.com" target="_blank">Email Dashboard</a></div>
+        <div>↗ <a href="https://n8n.itgyani.com" target="_blank">n8n Automation</a></div>
+        <div>↗ <a href="https://openalgo.cryptogyani.com/python" target="_blank">OpenAlgo Strategies</a></div>
+        <div>↗ <a href="https://chartink.com/alert_dashboard" target="_blank">ChartInk Alerts</a></div>
+        <div>↗ <a href="https://itgyani.atlassian.net/jira/software/projects/IT/boards/7" target="_blank">Jira Sprint Board</a></div>
+        <div>↗ <a href="https://cryptogyani.com" target="_blank">CryptoGyani</a></div>
+        <div>↗ <a href="https://learn.theemployeefactory.com" target="_blank">OpenMAIC LMS</a></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Bottom Row: Sprint + MOM -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- SPRINT + MOM -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
 
-  <!-- Sprint 1 -->
+  <!-- Sprint Board -->
   <div class="card p-4">
-    <div class="section-title">Sprint 1 — Week1 Foundation</div>
-    <div class="space-y-2 text-sm">
-      <div class="flex items-center justify-between p-2 rounded-lg bg-slate-800">
-        <span class="text-slate-300">IT-20: ITGYANI Service Page</span>
-        <span class="text-xs badge-building px-2 py-0.5 rounded">In Progress</span>
-      </div>
-      <div class="flex items-center justify-between p-2 rounded-lg bg-slate-800">
-        <span class="text-slate-300">IT-21: Cold Email Outreach 100 leads</span>
-        <span class="text-xs badge-building px-2 py-0.5 rounded">In Progress</span>
-      </div>
-      <div class="flex items-center justify-between p-2 rounded-lg bg-slate-800">
-        <span class="text-slate-300">CG-54: CryptoGyani SEO Launch</span>
-        <span class="text-xs badge-building px-2 py-0.5 rounded">In Progress</span>
-      </div>
-      <div class="flex items-center justify-between p-2 rounded-lg bg-slate-800">
-        <span class="text-slate-300">TEF-17: OpenMAIC Go-Live</span>
-        <span class="text-xs badge-standby px-2 py-0.5 rounded">Pending</span>
-      </div>
-      <div class="flex items-center justify-between p-2 rounded-lg bg-slate-800">
-        <span class="text-slate-300">YUKTI-3: OpenAlgo Audit</span>
-        <span class="text-xs badge-active px-2 py-0.5 rounded">Done ✓</span>
-      </div>
-      <div class="flex items-center justify-between p-2 rounded-lg bg-slate-800">
-        <span class="text-slate-300">CI Alerts: 10 webhooks → OpenAlgo</span>
-        <span class="text-xs badge-active px-2 py-0.5 rounded">Done ✓</span>
-      </div>
-      <div class="flex items-center justify-between p-2 rounded-lg bg-slate-800">
-        <span class="text-slate-300">Security: Secrets purged from git</span>
-        <span class="text-xs badge-active px-2 py-0.5 rounded">Done ✓</span>
-      </div>
+    <div class="flex items-center justify-between mb-3">
+      <div class="section-title mb-0">Sprint 1 — Week1 Foundation</div>
       <a href="https://itgyani.atlassian.net/jira/software/projects/IT/boards/7" target="_blank"
-         class="block text-center mt-2 py-2 rounded-lg bg-indigo-900 hover:bg-indigo-800 text-indigo-200 text-xs font-semibold transition">
-        View All 21 Stories in Jira →
-      </a>
+         class="text-xs text-indigo-400 hover:text-indigo-300">Open Jira →</a>
+    </div>
+    <div class="space-y-1.5 text-sm" id="sprint-board">
+      <div class="text-slate-500 text-center py-4"><span class="spinner"></span></div>
     </div>
   </div>
 
   <!-- MOM Log -->
   <div class="card p-4">
     <div class="flex items-center justify-between mb-3">
-      <div class="section-title mb-0">MOM — Minutes of Meeting</div>
-      <button onclick="showAddMOM()" class="text-xs px-3 py-1 rounded-lg bg-indigo-700 hover:bg-indigo-600 text-white transition">+ Add MOM</button>
+      <div class="section-title mb-0">Minutes of Meeting</div>
+      <button class="btn-primary" onclick="showMOMForm()">+ Add MOM</button>
     </div>
-    <div id="mom-log">
-      <div class="text-slate-400 text-sm text-center py-6">
-        No meetings recorded yet.<br>
-        <span class="text-xs text-slate-500">MOM stored in /var/www/dashboard/mom.json</span>
-      </div>
+    <div id="mom-list">
+      <div class="text-slate-500 text-sm text-center py-4"><span class="spinner"></span></div>
     </div>
-    <div id="add-mom-form" class="hidden mt-3 p-3 bg-slate-800 rounded-lg text-sm space-y-2">
-      <div class="text-slate-300 font-semibold">Add Meeting Notes</div>
-      <input id="mom-title" class="w-full bg-slate-700 text-white rounded px-3 py-2 text-sm" placeholder="Meeting title"/>
-      <textarea id="mom-notes" class="w-full bg-slate-700 text-white rounded px-3 py-2 text-sm h-20" placeholder="Key decisions & action items..."></textarea>
-      <div class="flex gap-2">
-        <button onclick="saveMOM()" class="flex-1 bg-indigo-700 hover:bg-indigo-600 text-white rounded py-1.5 text-xs font-semibold">Save</button>
-        <button onclick="hideMOM()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white rounded py-1.5 text-xs">Cancel</button>
+    <div id="mom-form" class="hidden mt-3 space-y-2">
+      <input id="mom-title" placeholder="Meeting title" />
+      <textarea id="mom-notes" placeholder="Key decisions & action items…" rows="3" style="resize:vertical"></textarea>
+      <div class="flex gap-2 pt-1">
+        <button class="btn-primary flex-1" onclick="submitMOM()">Save</button>
+        <button class="btn-ghost flex-1" onclick="hideMOMForm()">Cancel</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Communication Log -->
-<div class="card p-4 mt-4">
-  <div class="section-title">Communication Log — All Channels</div>
+<!-- COMMS ROW -->
+<div class="card p-4 mb-4">
+  <div class="section-title">Communication Channels</div>
   <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-    <div class="p-3 bg-slate-800 rounded-lg">
-      <div class="text-indigo-300 font-semibold mb-1">📱 Telegram</div>
-      <div class="text-slate-400 text-xs">@cryptogyanibot — Rony COO</div>
-      <div class="text-slate-400 text-xs">@Job_Alert_Rony_Bot — ARJUN alerts</div>
-      <div class="text-slate-400 text-xs">@itgyanibot — n8n workflows</div>
+    <div class="p-3 bg-slate-800/60 rounded-lg">
+      <div class="text-indigo-300 font-semibold mb-2">📱 Telegram</div>
+      <div class="text-slate-400 text-xs space-y-1">
+        <div>@cryptogyanibot — Rony (COO)</div>
+        <div>@Job_Alert_Rony_Bot — ARJUN alerts</div>
+        <div>@itgyanibot — n8n workflows</div>
+      </div>
     </div>
-    <div class="p-3 bg-slate-800 rounded-lg">
-      <div class="text-indigo-300 font-semibold mb-1">📧 Email (8 accounts)</div>
-      <div class="text-slate-400 text-xs">8,031 emails consolidated</div>
-      <div class="text-slate-400 text-xs">MAYA handling all inboxes</div>
-      <div class="text-slate-400 text-xs"><a href="https://dashboard.itgyani.com/email">View Email Feed →</a></div>
+    <div class="p-3 bg-slate-800/60 rounded-lg">
+      <div class="text-indigo-300 font-semibold mb-2">📧 Email (8 accounts)</div>
+      <div class="text-slate-400 text-xs space-y-1">
+        <div>8,031 emails consolidated</div>
+        <div>MAYA handling all inboxes</div>
+        <div><a href="https://dashboard.itgyani.com">View Email Feed →</a></div>
+      </div>
     </div>
-    <div class="p-3 bg-slate-800 rounded-lg">
-      <div class="text-indigo-300 font-semibold mb-1">📋 Jira</div>
-      <div class="text-slate-400 text-xs">7 Projects: IT, CG, YUKTI, TEF, KO...</div>
-      <div class="text-slate-400 text-xs">Sprint 1: 21 stories active</div>
-      <div class="text-slate-400 text-xs"><a href="https://itgyani.atlassian.net" target="_blank">Open Jira →</a></div>
+    <div class="p-3 bg-slate-800/60 rounded-lg">
+      <div class="text-indigo-300 font-semibold mb-2">📋 Jira</div>
+      <div class="text-slate-400 text-xs space-y-1">
+        <div>7 Projects: IT, CG, YUKTI, TEF, KO…</div>
+        <div>Sprint 1: 21 stories</div>
+        <div><a href="https://itgyani.atlassian.net" target="_blank">Open Jira →</a></div>
+      </div>
     </div>
   </div>
 </div>
 
-<div class="text-center text-slate-600 text-xs mt-6 pb-4">
-  ITGYANI OS v3 · Built by Rony (COO) · Auto-refreshes every 60s · Ashish Sharma CEO
+<div class="text-center text-slate-600 text-xs pb-4">
+  ITGYANI OS v3 · Rony (COO) · <span id="next-refresh">Refreshes in 30s</span>
 </div>
 
 <script>
-// Clock
-function updateClock() {
-  const now = new Date();
-  document.getElementById('clock').textContent = now.toLocaleTimeString('en-IN', {timeZone:'Asia/Calcutta',hour12:true});
-  document.getElementById('date-str').textContent = now.toLocaleDateString('en-IN', {timeZone:'Asia/Calcutta',weekday:'long',day:'numeric',month:'short',year:'numeric'});
+// ── Clock ────────────────────────────────────────────────────────────────────
+function tick(){
+  const n=new Date();
+  document.getElementById('clock').textContent=
+    n.toLocaleTimeString('en-IN',{timeZone:'Asia/Calcutta',hour12:true});
 }
-setInterval(updateClock, 1000);
-updateClock();
+setInterval(tick,1000); tick();
 
-// Auto refresh every 60s
-setTimeout(() => location.reload(), 60000);
-
-// Agents data
-const agents = [
-  {name:'RONY',role:'COO',focus:'Strategy & Ops',status:'active'},
-  {name:'MAYA',role:'CMO',focus:'Email & Marketing',status:'active'},
-  {name:'ARJUN',role:'InfoSec',focus:'Security & Compliance',status:'active'},
-  {name:'PRIYA',role:'SEO Lead',focus:'CryptoGyani SEO',status:'active'},
-  {name:'ZARA',role:'Sales',focus:'Cold Outreach',status:'active'},
-  {name:'FELIX',role:'Support',focus:'Customer Success',status:'standby'},
-  {name:'DISHA',role:'PM',focus:'Sprint 1 Tracking',status:'active'},
-  {name:'KABIR',role:'DevOps',focus:'VPS Infrastructure',status:'active'},
-  {name:'NIKKI',role:'Designer',focus:'UI/UX QA',status:'standby'},
-  {name:'VIKRAM',role:'Analytics',focus:'Revenue Tracking',status:'active'},
-  {name:'ROHAN',role:'Finance',focus:'P&L Dashboard',status:'active'},
-  {name:'TARA',role:'Research',focus:'Demand Validation',status:'active'},
-  {name:'KIRAN',role:'HR',focus:'Team Ops',status:'standby'},
-  {name:'RAVI',role:'RevOps',focus:'Razorpay Setup',status:'active'},
+// ── Agents ───────────────────────────────────────────────────────────────────
+const AGENTS=[
+  {name:'RONY',  role:'COO',      task:'Strategy & daily ops',        status:'active'},
+  {name:'MAYA',  role:'CMO',      task:'Email marketing & 1M leads',  status:'active'},
+  {name:'ARJUN', role:'InfoSec',  task:'Security & compliance kill-switch', status:'active'},
+  {name:'PRIYA', role:'SEO Lead', task:'CryptoGyani organic traffic',  status:'active'},
+  {name:'ZARA',  role:'Sales',    task:'100 cold email prospects',     status:'active'},
+  {name:'FELIX', role:'Support',  task:'Customer success pipeline',    status:'standby'},
+  {name:'DISHA', role:'PM',       task:'Sprint 1 tracking & blockers', status:'active'},
+  {name:'KABIR', role:'DevOps',   task:'VPS infra & containers',       status:'active'},
+  {name:'NIKKI', role:'Designer', task:'UI/UX QA sign-off',            status:'standby'},
+  {name:'VIKRAM',role:'Analytics',task:'Revenue & KPI tracking',       status:'active'},
+  {name:'ROHAN', role:'Finance',  task:'P&L dashboard',                status:'active'},
+  {name:'TARA',  role:'Research', task:'Demand validation & ideas',    status:'active'},
+  {name:'KIRAN', role:'HR',       task:'Team ops & onboarding',        status:'standby'},
+  {name:'RAVI',  role:'RevOps',   task:'Razorpay + Stripe setup',      status:'active'},
 ];
-
-const agentContainer = document.getElementById('agents');
-agents.forEach(a => {
-  const badgeClass = a.status === 'active' ? 'badge-active' : 'badge-standby';
-  const dotClass = a.status === 'active' ? 'dot-green' : 'dot-blue';
-  agentContainer.innerHTML += `
-    <div class="flex items-center justify-between p-3 rounded-lg bg-slate-800 hover:bg-slate-700 transition">
-      <div>
-        <div class="flex items-center gap-2">
-          <span class="status-dot ${dotClass}"></span>
-          <span class="font-bold text-white text-sm">${a.name}</span>
-          <span class="text-xs text-slate-500">${a.role}</span>
-        </div>
-        <div class="text-xs text-slate-400 mt-0.5 ml-3.5">${a.focus}</div>
+const ag=document.getElementById('agents-grid');
+AGENTS.forEach(a=>{
+  const isActive=a.status==='active';
+  ag.innerHTML+=`<div class="flex items-start justify-between p-3 rounded-lg bg-slate-800/60 hover:bg-slate-700/60 transition">
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center gap-2">
+        <span class="dot ${isActive?'dot-green pulse':'dot-blue'} mt-0.5"></span>
+        <span class="font-bold text-white text-sm">${a.name}</span>
+        <span class="text-xs text-slate-500">${a.role}</span>
       </div>
-      <span class="text-xs px-2 py-0.5 rounded-full ${badgeClass}">${a.status}</span>
-    </div>`;
+      <div class="text-xs text-slate-400 mt-0.5 pl-3.5 truncate">${a.task}</div>
+    </div>
+    <span class="text-xs px-2 py-0.5 rounded-full ${isActive?'badge-active':'badge-standby'} shrink-0 ml-2">${a.status}</span>
+  </div>`;
 });
 
-// Systems
-const systems = [
-  {name:'OpenAlgo',url:'https://openalgo.cryptogyani.com',desc:'Trading Platform',status:'up'},
-  {name:'n8n',url:'https://n8n.itgyani.com',desc:'Automation Engine',status:'up'},
-  {name:'ITGYANI Dashboard',url:'https://dashboard.itgyani.com',desc:'This page',status:'up'},
-  {name:'CryptoGyani',url:'https://cryptogyani.com',desc:'Crypto Portal',status:'up'},
-  {name:'n8n Postgres',url:null,desc:'DB healthy',status:'up'},
-  {name:'10 Yukti Strategies',url:'https://openalgo.cryptogyani.com/python',desc:'Analyze mode — auto-start on boot ✓',status:'up'},
-  {name:'ChartInk (15 alerts)',url:'https://chartink.com/alert_dashboard',desc:'10 webhooks → OpenAlgo ✓',status:'up'},
-  {name:'Strategy Watchdog',url:null,desc:'Cron every 10min — auto-restart',status:'up'},
+// ── Sprint board static data (Jira API integration next sprint) ──────────────
+const SPRINT=[
+  {id:'CI Alerts',   label:'10 webhooks → OpenAlgo',          status:'done'},
+  {id:'YUKTI-3',     label:'OpenAlgo audit & strategies',      status:'done'},
+  {id:'Security',    label:'Secrets purged, VPS pass rotated', status:'done'},
+  {id:'IT-20',       label:'ITGYANI Service Page (NIKKI)',     status:'in-progress'},
+  {id:'IT-21',       label:'Cold Email 100 prospects (ZARA)',  status:'in-progress'},
+  {id:'CG-54',       label:'CryptoGyani SEO Launch (PRIYA)',   status:'in-progress'},
+  {id:'IT-26',       label:'Email cleanup workflow (MAYA)',    status:'in-progress'},
+  {id:'TEF-17',      label:'OpenMAIC LMS go-live',             status:'pending'},
+  {id:'KO-14',       label:'Kharadi Online product pages',     status:'pending'},
+  {id:'YUKTI-4',     label:'Fyers auto-login Monday',          status:'pending'},
 ];
-
-const sysContainer = document.getElementById('systems');
-systems.forEach(s => {
-  const dot = s.status === 'up' ? 'bg-green-400' : 'bg-red-400';
-  const link = s.url ? `<a href="${s.url}" target="_blank" class="hover:underline">${s.name}</a>` : `<span>${s.name}</span>`;
-  sysContainer.innerHTML += `
-    <div class="flex items-center justify-between py-2 border-b border-slate-700 last:border-0">
-      <div>
-        <div class="text-sm text-slate-200">${link}</div>
-        <div class="text-xs text-slate-500">${s.desc}</div>
-      </div>
-      <div class="w-2 h-2 rounded-full ${dot} ${s.status==='up'?'pulse':''}"></div>
-    </div>`;
+const sb=document.getElementById('sprint-board');
+sb.innerHTML='';
+SPRINT.forEach(t=>{
+  const badge=t.status==='done'?'badge-done':t.status==='in-progress'?'badge-building':'badge-standby';
+  const label=t.status==='done'?'Done ✓':t.status==='in-progress'?'In Progress':'Pending';
+  sb.innerHTML+=`<div class="flex items-center justify-between p-2 rounded-lg bg-slate-800/60">
+    <div><span class="text-slate-500 text-xs mr-1">${t.id}</span><span class="text-slate-300 text-sm">${t.label}</span></div>
+    <span class="text-xs px-2 py-0.5 rounded ${badge} shrink-0 ml-2">${label}</span>
+  </div>`;
 });
 
-// MOM functions
-let meetings = [];
-try {
-  const stored = localStorage.getItem('itgyani_mom');
-  if (stored) meetings = JSON.parse(stored);
-} catch(e){}
+// ── Live data from /api/ops/status ───────────────────────────────────────────
+let refreshTimer=30;
+let countdownInterval;
 
-function renderMOM() {
-  const container = document.getElementById('mom-log');
-  if (meetings.length === 0) {
-    container.innerHTML = '<div class="text-slate-400 text-sm text-center py-6">No meetings recorded yet.<br><span class="text-xs text-slate-500">Click "+ Add MOM" to log a meeting</span></div>';
+function updateCountdown(){
+  refreshTimer--;
+  const el=document.getElementById('next-refresh');
+  if(el) el.textContent=refreshTimer>0?`Refreshes in ${refreshTimer}s`:'Refreshing…';
+  if(refreshTimer<=0){ clearInterval(countdownInterval); loadStatus(); }
+}
+
+async function loadStatus(){
+  document.getElementById('refresh-indicator').classList.remove('hidden');
+  try{
+    const r=await fetch('/api/ops/status',{cache:'no-store'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    applyStatus(d);
+  }catch(e){
+    console.warn('Status API error:',e);
+    applyFallback();
+  }finally{
+    document.getElementById('refresh-indicator').classList.add('hidden');
+    refreshTimer=30;
+    clearInterval(countdownInterval);
+    countdownInterval=setInterval(updateCountdown,1000);
+  }
+}
+
+function applyStatus(d){
+  // Timestamp
+  const ts=new Date(d.timestamp||Date.now());
+  document.getElementById('last-updated').textContent=
+    'Updated '+ts.toLocaleTimeString('en-IN',{timeZone:'Asia/Calcutta',hour12:true});
+
+  // Strategies KPI
+  const sr=d.strategies||{};
+  const srun=sr.running??10; const sconf=sr.configured??10;
+  document.getElementById('kpi-strategies').textContent=`${srun}/${sconf}`;
+  document.getElementById('kpi-strat-label').textContent=`Analyze mode${sr.note?' (est.)':''}`;
+  document.getElementById('kpi-strat-bar').style.width=(sconf>0?(srun/sconf)*100:0)+'%';
+
+  // ChartInk
+  const ci=d.chartink||{};
+  document.getElementById('kpi-chartink').textContent=(ci.total||15)+(ci.total>10?' alerts':'');
+  document.getElementById('kpi-ci-bar').style.width='100%';
+
+  // Sprint
+  const sp=d.sprint||{};
+  const done=sp.done??3; const total=sp.total??21;
+  document.getElementById('kpi-sprint').textContent=`${done}/${total}`;
+  document.getElementById('kpi-sprint-label').textContent=`Done / ${total} stories`;
+  document.getElementById('kpi-sprint-bar').style.width=(total>0?(done/total)*100:0)+'%';
+
+  // Systems
+  const containers=d.containers||[];
+  const sysURLs=d.systems||[];
+  const sl=document.getElementById('systems-list');
+  sl.innerHTML='';
+
+  // Containers first
+  containers.forEach(c=>{
+    const ok=c.ok;
+    sl.innerHTML+=`<div class="flex items-center justify-between py-2 border-b border-slate-700/50 last:border-0">
+      <div><div class="text-sm text-slate-200">${c.name}</div>
+      <div class="text-xs text-slate-500">${c.status.substring(0,30)}</div></div>
+      <div class="dot ${ok?'dot-green pulse':'dot-red'}"></div></div>`;
+  });
+
+  // URL checks
+  sysURLs.forEach(s=>{
+    if(containers.find(c=>c.name.toLowerCase().includes(s.name.toLowerCase()))) return;
+    const ok=s.ok;
+    const link=s.url?`<a href="${s.url}" target="_blank" class="hover:underline">${s.name}</a>`:s.name;
+    sl.innerHTML+=`<div class="flex items-center justify-between py-2 border-b border-slate-700/50 last:border-0">
+      <div><div class="text-sm text-slate-200">${link}</div>
+      <div class="text-xs text-slate-500">${s.code?'HTTP '+s.code:'checked'}</div></div>
+      <div class="dot ${ok?'dot-green pulse':'dot-red'}"></div></div>`;
+  });
+
+  if(!containers.length && !sysURLs.length){
+    sl.innerHTML='<div class="text-slate-500 text-sm py-2">No data</div>';
+  }
+}
+
+function applyFallback(){
+  // Show static fallback when API unavailable
+  document.getElementById('last-updated').textContent='API offline — showing last known';
+  document.getElementById('kpi-strategies').textContent='10/10';
+  document.getElementById('kpi-strat-label').textContent='Analyze mode (cached)';
+  document.getElementById('kpi-strat-bar').style.width='100%';
+  document.getElementById('kpi-chartink').textContent='15';
+  document.getElementById('kpi-ci-bar').style.width='100%';
+  document.getElementById('kpi-sprint').textContent='3/21';
+  document.getElementById('kpi-sprint-label').textContent='Done / 21 stories';
+  document.getElementById('kpi-sprint-bar').style.width='14%';
+  document.getElementById('systems-list').innerHTML=`
+    <div class="text-yellow-400 text-xs py-2">⚠ API offline — status may be stale</div>
+    <div class="flex items-center justify-between py-2"><div class="text-sm text-slate-200">openalgo-web</div><div class="dot dot-yellow"></div></div>
+    <div class="flex items-center justify-between py-2"><div class="text-sm text-slate-200">n8n</div><div class="dot dot-yellow"></div></div>`;
+}
+
+// ── MOM ──────────────────────────────────────────────────────────────────────
+async function loadMOM(){
+  try{
+    const r=await fetch('/api/ops/mom');
+    const entries=await r.json();
+    renderMOM(entries);
+  }catch(e){
+    // Fallback to localStorage
+    try{
+      const stored=localStorage.getItem('itgyani_mom');
+      renderMOM(stored?JSON.parse(stored):[]);
+    }catch(_){renderMOM([]);}
+  }
+}
+
+function renderMOM(entries){
+  const el=document.getElementById('mom-list');
+  if(!entries||!entries.length){
+    el.innerHTML='<div class="text-slate-500 text-sm text-center py-6">No meetings logged yet.</div>';
     return;
   }
-  container.innerHTML = meetings.slice(-5).reverse().map(m => `
-    <div class="p-2 mb-2 bg-slate-800 rounded-lg text-xs">
-      <div class="flex justify-between text-slate-300 font-semibold mb-1">
-        <span>${m.title}</span><span class="text-slate-500">${m.date}</span>
+  el.innerHTML=entries.slice(-5).reverse().map(m=>`
+    <div class="p-2.5 mb-2 bg-slate-800/60 rounded-lg text-xs">
+      <div class="flex justify-between mb-1">
+        <span class="text-slate-200 font-semibold">${m.title||'Untitled'}</span>
+        <span class="text-slate-500">${m.date||''}</span>
       </div>
-      <div class="text-slate-400">${m.notes}</div>
+      <div class="text-slate-400 whitespace-pre-wrap">${m.notes||''}</div>
     </div>`).join('');
 }
 
-function showAddMOM() { document.getElementById('add-mom-form').classList.remove('hidden'); }
-function hideMOM() { document.getElementById('add-mom-form').classList.add('hidden'); }
-function saveMOM() {
-  const title = document.getElementById('mom-title').value.trim();
-  const notes = document.getElementById('mom-notes').value.trim();
-  if (!title) return;
-  meetings.push({title, notes, date: new Date().toLocaleDateString('en-IN')});
-  localStorage.setItem('itgyani_mom', JSON.stringify(meetings));
-  renderMOM();
-  hideMOM();
-  document.getElementById('mom-title').value = '';
-  document.getElementById('mom-notes').value = '';
+function showMOMForm(){document.getElementById('mom-form').classList.remove('hidden');}
+function hideMOMForm(){document.getElementById('mom-form').classList.add('hidden');}
+
+async function submitMOM(){
+  const title=document.getElementById('mom-title').value.trim();
+  const notes=document.getElementById('mom-notes').value.trim();
+  if(!title) return;
+  const date=new Date().toLocaleDateString('en-IN');
+  try{
+    await fetch('/api/ops/mom',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({title,notes,date})
+    });
+  }catch(e){
+    // localStorage fallback
+    const stored=localStorage.getItem('itgyani_mom');
+    const arr=stored?JSON.parse(stored):[];
+    arr.push({title,notes,date});
+    localStorage.setItem('itgyani_mom',JSON.stringify(arr));
+  }
+  document.getElementById('mom-title').value='';
+  document.getElementById('mom-notes').value='';
+  hideMOMForm();
+  loadMOM();
 }
 
-renderMOM();
+// ── Boot ─────────────────────────────────────────────────────────────────────
+loadStatus();
+loadMOM();
+countdownInterval=setInterval(updateCountdown,1000);
 </script>
 </body>
 </html>
