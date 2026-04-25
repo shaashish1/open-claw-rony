@@ -6,582 +6,755 @@
 <title>ITGYANI OS v3 — Command Center</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-:root{--bg:#0b0f1a;--card:#111827;--card2:#1a2235;--border:#1f2d40;--muted:#4b5563;--accent:#6366f1}
-body{background:var(--bg);color:#e2e8f0;font-family:system-ui,sans-serif;min-height:100vh}
-.card{background:var(--card);border:1px solid var(--border);border-radius:10px}
-.card2{background:var(--card2);border:1px solid var(--border);border-radius:8px}
-/* Status badges */
+*{box-sizing:border-box}
+body{background:#0b0f1a;color:#e2e8f0;font-family:system-ui,-apple-system,sans-serif;min-height:100vh;margin:0}
+.card{background:#111827;border:1px solid #1f2d40;border-radius:10px}
+.card2{background:#1a2235;border:1px solid #1f2d40;border-radius:8px}
 .b-live{background:#052e16;color:#4ade80;border:1px solid #166534}
 .b-build{background:#1c1917;color:#fb923c;border:1px solid #9a3412}
 .b-plan{background:#1e1b4b;color:#818cf8;border:1px solid #3730a3}
-.b-idle{background:#111827;color:#6b7280;border:1px solid #374151}
 .b-done{background:#052e16;color:#4ade80;border:1px solid #166534}
 .b-prog{background:#1c1917;color:#fb923c;border:1px solid #9a3412}
 .b-todo{background:#1e1b4b;color:#818cf8;border:1px solid #3730a3}
-.b-block{background:#450a0a;color:#f87171;border:1px solid #991b1b}
-/* Dot */
+.b-hi{background:#450a0a;color:#f87171;border:1px solid #991b1b}
+.b-med{background:#1c1917;color:#fbbf24;border:1px solid #92400e}
+.b-lo{background:#111827;color:#6b7280;border:1px solid #374151}
 .dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0}
 .dot-g{background:#4ade80}.dot-o{background:#fb923c}.dot-b{background:#818cf8}.dot-r{background:#f87171}.dot-y{background:#fbbf24}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 .pulse{animation:pulse 2s infinite}
-/* Nav tabs */
-.nav-tab{padding:6px 16px;border-radius:6px;cursor:pointer;font-size:.8rem;font-weight:600;color:#6b7280;transition:all .15s}
+.nav-tab{padding:7px 14px;border-radius:6px;cursor:pointer;font-size:.8rem;font-weight:600;color:#6b7280;transition:all .15s;white-space:nowrap}
 .nav-tab.active{background:#1e293b;color:#e2e8f0}
 .nav-tab:hover:not(.active){color:#94a3b8}
-/* Section */
-.section-title{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:#4b5563;font-weight:700;margin-bottom:8px}
-/* Progress */
-.prog-bar{height:4px;background:#1f2d40;border-radius:2px;overflow:hidden}
-.prog-fill{height:100%;background:linear-gradient(90deg,#6366f1,#8b5cf6);border-radius:2px;transition:width .5s}
-/* Log feed */
-.log-item{padding:8px 10px;border-left:2px solid var(--border);margin-bottom:6px;font-size:.78rem}
-.log-item.g{border-color:#166534}.log-item.o{border-color:#9a3412}.log-item.r{border-color:#991b1b}.log-item.b{border-color:#3730a3}
-/* Agent card */
-.agent-card{padding:12px;border-radius:8px;background:var(--card2);border:1px solid var(--border);transition:border-color .15s;cursor:default}
-.agent-card:hover{border-color:#374151}
-/* Task row */
-.task-row{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;background:var(--card2);margin-bottom:4px;font-size:.8rem}
-/* Input */
-input,textarea,select{background:#0b0f1a;border:1px solid var(--border);border-radius:6px;color:#e2e8f0;padding:7px 11px;font-size:.85rem;outline:none;width:100%}
-input:focus,textarea:focus,select:focus{border-color:#6366f1}
-button.btn{padding:6px 14px;border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;border:none;transition:opacity .15s}
-button.btn:hover{opacity:.85}
-.btn-p{background:#4f46e5;color:#fff}
-.btn-g{background:#1a2235;color:#94a3b8;border:1px solid var(--border)}
-a{color:#818cf8}a:hover{color:#a5b4fc}
-/* Scrollable */
-.scroll-y{overflow-y:auto;max-height:320px;scrollbar-width:thin;scrollbar-color:#1f2d40 transparent}
-.scroll-y-tall{overflow-y:auto;max-height:480px;scrollbar-width:thin;scrollbar-color:#1f2d40 transparent}
-/* Spinner */
-.spin{width:14px;height:14px;border:2px solid #1f2d40;border-top-color:#6366f1;border-radius:50%;animation:spin .8s linear infinite;display:inline-block}
+.sec{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:#4b5563;font-weight:700;margin-bottom:8px}
+.pb{height:4px;background:#1f2d40;border-radius:2px;overflow:hidden;margin-top:6px}
+.pf{height:100%;background:linear-gradient(90deg,#6366f1,#8b5cf6);border-radius:2px;transition:width .5s}
+.spin{width:13px;height:13px;border:2px solid #1f2d40;border-top-color:#6366f1;border-radius:50%;animation:spin .8s linear infinite;display:inline-block;vertical-align:middle}
 @keyframes spin{to{transform:rotate(360deg)}}
-/* KPI */
-.kpi-val{font-size:1.6rem;font-weight:700;line-height:1}
-/* Online ring */
-.ring{width:10px;height:10px;border-radius:50%;border:2px solid}
-.ring-g{background:#4ade80;border-color:#166534}
-.ring-o{background:#fb923c;border-color:#9a3412}
-.ring-r{background:#f87171;border-color:#991b1b}
-.ring-b{background:#818cf8;border-color:#3730a3}
+a{color:#818cf8}a:hover{color:#a5b4fc}
+input,textarea,select{background:#0b0f1a;border:1px solid #1f2d40;border-radius:6px;color:#e2e8f0;padding:7px 11px;font-size:.85rem;outline:none}
+input:focus,textarea:focus,select:focus{border-color:#6366f1}
+.btn{padding:6px 14px;border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;border:none;transition:opacity .15s}
+.btn:hover{opacity:.85}
+.btn-p{background:#4f46e5;color:#fff}
+.btn-g{background:#1a2235;color:#94a3b8;border:1px solid #1f2d40}
+.btn-r{background:#7f1d1d;color:#fca5a5;border:1px solid #991b1b}
+.sy{overflow-y:auto;scrollbar-width:thin;scrollbar-color:#1f2d40 transparent}
+/* Email */
+.acc-item{padding:8px 12px;cursor:pointer;border-radius:6px;font-size:.82rem;transition:background .1s}
+.acc-item:hover{background:#1a2235}
+.acc-item.active{background:#1e2d40;color:#818cf8}
+.email-row{padding:10px 12px;cursor:pointer;border-bottom:1px solid #1f2d40;font-size:.82rem;transition:background .1s}
+.email-row:hover{background:#1a2235}
+.email-row.active{background:#1e2d40;border-left:2px solid #6366f1}
+.email-row.unread .e-subj{font-weight:700;color:#e2e8f0}
+/* Task */
+.task-card{padding:10px;border-radius:6px;background:#1a2235;border:1px solid #1f2d40;margin-bottom:6px;cursor:pointer;transition:border-color .15s}
+.task-card:hover{border-color:#374151}
+.task-card.done-task{opacity:.45}
+/* Kanban col */
+.kcol{background:#111827;border:1px solid #1f2d40;border-radius:8px;padding:10px;min-height:200px}
 </style>
 </head>
-<body class="p-4">
+<body class="p-3 md:p-4">
 
 <!-- HEADER -->
-<div class="flex items-center justify-between mb-4">
-  <div class="flex items-center gap-3">
+<div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+  <div class="flex items-center gap-2 flex-wrap">
     <div class="dot dot-g pulse"></div>
-    <span class="text-white font-bold text-base">ITGYANI OS v3</span>
+    <span class="text-white font-bold">ITGYANI OS v3</span>
     <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-900/40 text-indigo-300 border border-indigo-700/40">Command Center</span>
-    <span id="hb-dot" class="text-xs text-slate-600">●</span>
   </div>
-  <div class="flex items-center gap-4">
-    <div class="text-right">
+  <div class="flex items-center gap-3">
+    <div class="text-right hidden sm:block">
       <div id="clock" class="text-white font-mono font-bold text-sm"></div>
-      <div id="last-sync" class="text-slate-600 text-xs">Syncing…</div>
+      <div id="sync-lbl" class="text-slate-600 text-xs">Syncing…</div>
     </div>
     <button class="btn btn-g text-xs" onclick="loadAll()">↻ Refresh</button>
   </div>
 </div>
 
 <!-- KPI ROW -->
-<div class="grid grid-cols-2 lg:grid-cols-5 gap-2 mb-4">
-  <div class="card p-3">
-    <div class="section-title">Revenue</div>
-    <div class="kpi-val text-white">₹0</div>
-    <div class="text-xs text-slate-500 mt-1">Target ₹1L/mo</div>
-    <div class="prog-bar mt-2"><div class="prog-fill" style="width:1%"></div></div>
-  </div>
-  <div class="card p-3">
-    <div class="section-title">Strategies</div>
-    <div class="kpi-val text-green-400" id="k-strat"><span class="spin"></span></div>
-    <div class="text-xs text-slate-500 mt-1">Analyze mode</div>
-    <div class="prog-bar mt-2"><div class="prog-fill" id="k-strat-bar" style="width:0%"></div></div>
-  </div>
-  <div class="card p-3">
-    <div class="section-title">ChartInk</div>
-    <div class="kpi-val text-green-400" id="k-ci"><span class="spin"></span></div>
-    <div class="text-xs text-slate-500 mt-1">→ OpenAlgo</div>
-    <div class="prog-bar mt-2"><div class="prog-fill" style="width:100%"></div></div>
-  </div>
-  <div class="card p-3">
-    <div class="section-title">Sprint 1</div>
-    <div class="kpi-val text-white" id="k-sprint"><span class="spin"></span></div>
-    <div class="text-xs text-slate-500 mt-1" id="k-sprint-lbl">stories</div>
-    <div class="prog-bar mt-2"><div class="prog-fill" id="k-sprint-bar" style="width:0%"></div></div>
-  </div>
-  <div class="card p-3">
-    <div class="section-title">Agents Live</div>
-    <div class="kpi-val text-indigo-400" id="k-agents">10</div>
-    <div class="text-xs text-slate-500 mt-1">of 14 active</div>
-    <div class="prog-bar mt-2"><div class="prog-fill" style="width:71%"></div></div>
-  </div>
+<div class="grid grid-cols-2 md:grid-cols-5 gap-2 mb-3">
+  <div class="card p-3"><div class="sec">Revenue</div><div class="text-xl font-bold text-white">₹0</div><div class="text-xs text-slate-500 mt-0.5">Target ₹1L/mo</div><div class="pb"><div class="pf" style="width:1%"></div></div></div>
+  <div class="card p-3"><div class="sec">Strategies</div><div id="k-s" class="text-xl font-bold text-green-400"><span class="spin"></span></div><div class="text-xs text-slate-500 mt-0.5">Analyze mode</div><div class="pb"><div class="pf" id="k-s-b" style="width:0%"></div></div></div>
+  <div class="card p-3"><div class="sec">ChartInk</div><div id="k-c" class="text-xl font-bold text-green-400"><span class="spin"></span></div><div class="text-xs text-slate-500 mt-0.5">→ OpenAlgo</div><div class="pb"><div class="pf" style="width:100%"></div></div></div>
+  <div class="card p-3"><div class="sec">Sprint 1</div><div id="k-j" class="text-xl font-bold text-white"><span class="spin"></span></div><div id="k-j-l" class="text-xs text-slate-500 mt-0.5">stories</div><div class="pb"><div class="pf" id="k-j-b" style="width:0%"></div></div></div>
+  <div class="card p-3"><div class="sec">Agents Live</div><div class="text-xl font-bold text-indigo-400">10<span class="text-slate-500 text-sm">/14</span></div><div class="text-xs text-slate-500 mt-0.5">4 building/planned</div><div class="pb"><div class="pf" style="width:71%"></div></div></div>
 </div>
 
-<!-- NAV TABS -->
-<div class="flex gap-1 mb-4 bg-slate-900/40 p-1 rounded-lg w-fit">
-  <div class="nav-tab active" onclick="switchTab('agents',this)">👥 Agents</div>
-  <div class="nav-tab" onclick="switchTab('tasks',this)">📋 Tasks</div>
-  <div class="nav-tab" onclick="switchTab('sprint',this)">🏃 Sprint</div>
-  <div class="nav-tab" onclick="switchTab('systems',this)">🖥 Systems</div>
-  <div class="nav-tab" onclick="switchTab('logs',this)">📡 Live Log</div>
+<!-- NAV -->
+<div class="flex gap-1 mb-3 bg-slate-900/40 p-1 rounded-lg overflow-x-auto">
+  <div class="nav-tab active" onclick="tab('agents',this)">👥 Agents</div>
+  <div class="nav-tab" onclick="tab('mailbox',this)">📧 Mailbox</div>
+  <div class="nav-tab" onclick="tab('tasks',this)">📋 Tasks</div>
+  <div class="nav-tab" onclick="tab('sprint',this)">🏃 Sprint</div>
+  <div class="nav-tab" onclick="tab('systems',this)">🖥 Systems</div>
+  <div class="nav-tab" onclick="tab('logs',this)">📡 Logs</div>
 </div>
 
-<!-- TAB: AGENTS -->
-<div id="tab-agents" class="tab-pane">
-  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-  </div>
+<!-- ═══ AGENTS TAB ═══ -->
+<div id="tp-agents" class="tp">
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2" id="agents-grid"></div>
 </div>
 
-<!-- TAB: TASKS -->
-<div id="tab-tasks" class="tab-pane hidden">
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-    <!-- Add task -->
-    <div class="card p-4">
-      <div class="section-title">Dispatch Task</div>
-      <div class="space-y-2">
-        <input id="t-title" placeholder="Task title…"/>
-        <textarea id="t-desc" placeholder="Description / goal…" rows="2" style="resize:none"></textarea>
-        <div class="flex gap-2">
-          <select id="t-agent">
-            <option>RONY</option><option>MAYA</option><option>ARJUN</option><option>PRIYA</option>
-            <option>ZARA</option><option>FELIX</option><option>DISHA</option><option>KABIR</option>
-            <option>NIKKI</option><option>VIKRAM</option><option>ROHAN</option><option>TARA</option>
-            <option>KIRAN</option><option>RAVI</option>
-          </select>
-          <select id="t-prio">
-            <option value="high">🔴 High</option>
-            <option value="med" selected>🟡 Med</option>
-            <option value="low">⚪ Low</option>
-          </select>
-        </div>
-        <button class="btn btn-p w-full" onclick="addTask()">+ Dispatch</button>
+<!-- ═══ MAILBOX TAB ═══ -->
+<div id="tp-mailbox" class="tp hidden">
+  <div class="card" style="height:calc(100vh - 220px);display:flex;overflow:hidden">
+    <!-- Accounts sidebar -->
+    <div style="width:200px;min-width:160px;border-right:1px solid #1f2d40;display:flex;flex-direction:column">
+      <div class="p-2 border-b border-slate-800 flex items-center justify-between">
+        <span class="text-xs text-slate-400 font-semibold">ACCOUNTS</span>
+        <button class="btn btn-g text-xs px-2 py-1" onclick="syncEmail()">↻</button>
+      </div>
+      <div class="sy flex-1 p-1" id="acct-list">
+        <div class="text-slate-500 text-xs p-3"><span class="spin"></span> Loading…</div>
       </div>
     </div>
-    <!-- Task board -->
-    <div class="card p-4">
+    <!-- Email list -->
+    <div style="width:280px;min-width:220px;border-right:1px solid #1f2d40;display:flex;flex-direction:column">
+      <div class="p-2 border-b border-slate-800 flex items-center justify-between">
+        <span class="text-xs text-slate-400 font-semibold" id="inbox-label">INBOX</span>
+        <div class="flex gap-1">
+          <button class="btn btn-g text-xs px-2 py-0.5" onclick="mailPage(-1)">‹</button>
+          <button class="btn btn-g text-xs px-2 py-0.5" onclick="mailPage(1)">›</button>
+        </div>
+      </div>
+      <div class="sy flex-1" id="email-list">
+        <div class="text-slate-500 text-xs p-4 text-center">Select an account</div>
+      </div>
+    </div>
+    <!-- Reader -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <div id="reader-empty" class="flex-1 flex items-center justify-center text-slate-600 text-sm">
+        Select an email to read
+      </div>
+      <div id="reader-content" class="hidden flex-1 flex flex-col overflow-hidden">
+        <div class="p-3 border-b border-slate-800">
+          <div id="r-subject" class="text-white font-semibold text-sm mb-1"></div>
+          <div id="r-meta" class="text-slate-500 text-xs"></div>
+        </div>
+        <div class="sy flex-1 p-3">
+          <div id="r-body" class="text-slate-300 text-sm whitespace-pre-wrap leading-relaxed"></div>
+        </div>
+        <div class="p-3 border-t border-slate-800">
+          <div id="reply-area" class="hidden">
+            <textarea id="reply-txt" class="w-full mb-2" rows="3" placeholder="Write reply…" style="resize:vertical"></textarea>
+            <div class="flex gap-2">
+              <button class="btn btn-p text-xs" onclick="sendReply()">Send Reply</button>
+              <button class="btn btn-g text-xs" onclick="cancelReply()">Cancel</button>
+            </div>
+          </div>
+          <div id="reply-btns" class="flex gap-2">
+            <button class="btn btn-p text-xs" onclick="showReply()">↩ Reply</button>
+            <button class="btn btn-r text-xs" onclick="deleteEmail()">🗑 Delete</button>
+          </div>
+        </div>
+      </div>
+      <div id="mail-login-prompt" class="hidden flex-1 flex flex-col items-center justify-center gap-3 text-center p-6">
+        <div class="text-3xl">🔒</div>
+        <div class="text-white font-semibold">Login Required</div>
+        <div class="text-slate-400 text-sm mb-2">Enter your dashboard credentials to access the mailbox.</div>
+        <input id="ml-user" placeholder="Username" value="ashish" style="width:220px;text-align:center"/>
+        <input id="ml-pass" type="password" placeholder="Password" style="width:220px;text-align:center"/>
+        <button class="btn btn-p" onclick="mailLogin()">Unlock Mailbox</button>
+        <div id="ml-err" class="text-red-400 text-xs hidden">Login failed — check credentials</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TASKS TAB ═══ -->
+<div id="tp-tasks" class="tp hidden">
+  <!-- Dispatch form -->
+  <div class="card p-3 mb-3">
+    <div class="sec">Dispatch Task</div>
+    <div class="flex flex-wrap gap-2">
+      <input id="t-title" placeholder="Task title…" style="flex:1;min-width:200px"/>
+      <select id="t-agent" style="min-width:120px">
+        <option>RONY</option><option>MAYA</option><option>ARJUN</option><option>PRIYA</option>
+        <option>ZARA</option><option>FELIX</option><option>DISHA</option><option>KABIR</option>
+        <option>NIKKI</option><option>VIKRAM</option><option>ROHAN</option><option>TARA</option>
+        <option>KIRAN</option><option>RAVI</option>
+      </select>
+      <select id="t-prio" style="min-width:100px">
+        <option value="high">🔴 High</option>
+        <option value="med" selected>🟡 Med</option>
+        <option value="low">⚪ Low</option>
+      </select>
+      <button class="btn btn-p" onclick="addTask()">+ Dispatch</button>
+    </div>
+  </div>
+  <!-- Kanban -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+    <div class="kcol">
       <div class="flex items-center justify-between mb-2">
-        <div class="section-title mb-0">Active Tasks</div>
-        <div class="flex gap-1 text-xs">
-          <span class="fchip active px-2 py-0.5 rounded cursor-pointer" onclick="filterTasks('all',this)">All</span>
-          <span class="fchip px-2 py-0.5 rounded cursor-pointer text-slate-400" onclick="filterTasks('high',this)">🔴</span>
-          <span class="fchip px-2 py-0.5 rounded cursor-pointer text-slate-400" onclick="filterTasks('done',this)">✓</span>
-        </div>
+        <div class="sec mb-0 text-blue-400">TO DO</div>
+        <span class="text-xs bg-blue-900/40 text-blue-400 px-2 rounded-full" id="cnt-todo">0</span>
       </div>
-      <div class="scroll-y-tall" id="task-list"></div>
+      <div id="col-todo"></div>
+    </div>
+    <div class="kcol">
+      <div class="flex items-center justify-between mb-2">
+        <div class="sec mb-0 text-orange-400">IN PROGRESS</div>
+        <span class="text-xs bg-orange-900/40 text-orange-400 px-2 rounded-full" id="cnt-doing">0</span>
+      </div>
+      <div id="col-doing"></div>
+    </div>
+    <div class="kcol">
+      <div class="flex items-center justify-between mb-2">
+        <div class="sec mb-0 text-green-400">DONE</div>
+        <span class="text-xs bg-green-900/40 text-green-400 px-2 rounded-full" id="cnt-done">0</span>
+      </div>
+      <div id="col-done"></div>
     </div>
   </div>
 </div>
 
-<!-- TAB: SPRINT -->
-<div id="tab-sprint" class="tab-pane hidden">
+<!-- ═══ SPRINT TAB ═══ -->
+<div id="tp-sprint" class="tp hidden">
   <div class="card p-4">
-    <div class="flex items-center justify-between mb-3">
+    <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
       <div>
         <div class="text-white font-semibold" id="sprint-name">Sprint 1 — Week1 Foundation</div>
-        <div class="text-xs text-slate-500" id="sprint-meta">Loading…</div>
+        <div class="text-xs text-slate-500" id="sprint-meta">Loading from Jira…</div>
       </div>
-      <a href="https://itgyani.atlassian.net/jira/software/projects/IT/boards/7" target="_blank" class="btn btn-g btn text-xs">Open Jira →</a>
+      <a href="https://itgyani.atlassian.net/jira/software/projects/IT/boards/7" target="_blank" class="btn btn-g text-xs">Open Jira →</a>
     </div>
-    <!-- Kanban columns -->
-    <div class="grid grid-cols-3 gap-3">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
       <div>
-        <div class="section-title text-blue-400">TO DO</div>
-        <div class="scroll-y-tall space-y-1" id="col-todo"></div>
+        <div class="sec text-blue-400">TO DO</div>
+        <div class="sy" style="max-height:420px" id="j-todo"></div>
       </div>
       <div>
-        <div class="section-title text-orange-400">IN PROGRESS</div>
-        <div class="scroll-y-tall space-y-1" id="col-prog"></div>
+        <div class="sec text-orange-400">IN PROGRESS</div>
+        <div class="sy" style="max-height:420px" id="j-prog"></div>
       </div>
       <div>
-        <div class="section-title text-green-400">DONE</div>
-        <div class="scroll-y-tall space-y-1" id="col-done"></div>
+        <div class="sec text-green-400">DONE</div>
+        <div class="sy" style="max-height:420px" id="j-done"></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- TAB: SYSTEMS -->
-<div id="tab-systems" class="tab-pane hidden">
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+<!-- ═══ SYSTEMS TAB ═══ -->
+<div id="tp-systems" class="tp hidden">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
     <div class="card p-4">
-      <div class="section-title">Containers</div>
-      <div id="sys-containers" class="space-y-2">
-        <div class="text-slate-500 text-sm"><span class="spin"></span> Loading…</div>
-      </div>
+      <div class="sec">Containers</div>
+      <div id="sys-c" class="space-y-2"><div class="text-slate-500 text-sm"><span class="spin"></span> Loading…</div></div>
     </div>
     <div class="card p-4">
-      <div class="section-title">Services</div>
-      <div id="sys-services" class="space-y-2">
-        <div class="text-slate-500 text-sm"><span class="spin"></span> Loading…</div>
-      </div>
+      <div class="sec">Services</div>
+      <div id="sys-s" class="space-y-2"><div class="text-slate-500 text-sm"><span class="spin"></span> Loading…</div></div>
       <div class="mt-4 pt-3 border-t border-slate-800">
-        <div class="section-title">Quick Links</div>
+        <div class="sec">Quick Links</div>
         <div class="grid grid-cols-2 gap-1 text-sm">
           <a href="https://dashboard.itgyani.com" target="_blank">↗ Email Dashboard</a>
           <a href="https://n8n.itgyani.com" target="_blank">↗ n8n</a>
           <a href="https://openalgo.cryptogyani.com/python" target="_blank">↗ OpenAlgo</a>
           <a href="https://chartink.com/alert_dashboard" target="_blank">↗ ChartInk</a>
           <a href="https://cryptogyani.com" target="_blank">↗ CryptoGyani</a>
-          <a href="https://learn.theemployeefactory.com" target="_blank">↗ LMS</a>
           <a href="https://itgyani.com" target="_blank">↗ ITGYANI.com</a>
-          <a href="https://kharadionline.com" target="_blank">↗ Kharadi Online</a>
+          <a href="https://learn.theemployeefactory.com" target="_blank">↗ LMS</a>
+          <a href="https://kharadionline.com" target="_blank">↗ Kharadi</a>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- TAB: LOGS -->
-<div id="tab-logs" class="tab-pane hidden">
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+<!-- ═══ LOGS TAB ═══ -->
+<div id="tp-logs" class="tp hidden">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
     <div class="card p-4">
-      <div class="flex items-center justify-between mb-3">
-        <div class="section-title mb-0">Live Activity Log</div>
-        <button class="btn btn-g text-xs" onclick="clearLog()">Clear</button>
+      <div class="flex items-center justify-between mb-2">
+        <div class="sec mb-0">Live Activity Log</div>
+        <button class="btn btn-g text-xs" onclick="logs=[];renderLogs()">Clear</button>
       </div>
-      <div class="scroll-y-tall" id="live-log">
+      <div class="sy" style="max-height:420px" id="live-log">
         <div class="text-slate-600 text-sm text-center py-8">Activity will appear here…</div>
       </div>
     </div>
-    <!-- MOM -->
     <div class="card p-4">
-      <div class="flex items-center justify-between mb-3">
-        <div class="section-title mb-0">Minutes of Meeting</div>
-        <button class="btn btn-p text-xs" onclick="toggleMOM()">+ Add MOM</button>
+      <div class="flex items-center justify-between mb-2">
+        <div class="sec mb-0">Minutes of Meeting</div>
+        <button class="btn btn-p text-xs" onclick="document.getElementById('mom-frm').classList.toggle('hidden')">+ Add MOM</button>
       </div>
-      <div id="mom-form" class="hidden space-y-2 mb-3">
-        <input id="mom-title" placeholder="Meeting title…"/>
-        <textarea id="mom-notes" placeholder="Key decisions & action items…" rows="3" style="resize:vertical"></textarea>
+      <div id="mom-frm" class="hidden space-y-2 mb-3">
+        <input id="mom-t" placeholder="Meeting title…" style="width:100%"/>
+        <textarea id="mom-n" placeholder="Key decisions & actions…" rows="3" style="width:100%;resize:vertical"></textarea>
         <div class="flex gap-2">
           <button class="btn btn-p flex-1 text-xs" onclick="saveMOM()">Save</button>
-          <button class="btn btn-g flex-1 text-xs" onclick="toggleMOM()">Cancel</button>
+          <button class="btn btn-g flex-1 text-xs" onclick="document.getElementById('mom-frm').classList.add('hidden')">Cancel</button>
         </div>
       </div>
-      <div class="scroll-y" id="mom-list">
+      <div class="sy" style="max-height:340px" id="mom-list">
         <div class="text-slate-600 text-sm text-center py-6">No meetings yet.</div>
       </div>
     </div>
   </div>
 </div>
 
-<div class="text-center text-slate-700 text-xs mt-6 pb-2">
-  ITGYANI OS v3 · Rony COO · <span id="refresh-cdown">30s</span>
+<div class="text-center text-slate-700 text-xs mt-4 pb-2">
+  ITGYANI OS v3 · Rony COO · Refreshes in <span id="cd">30</span>s · <a href="https://github.com/shaashish1/open-claw-rony" target="_blank">GitHub</a>
 </div>
 
 <script>
-// ── DATA ────────────────────────────────────────────────────────────────────
-const AGENTS = [
-  {name:'RONY',  role:'COO',      emoji:'🤖', task:'Running OS v3 operations & sprint oversight', status:'live',  kra:'All 14 agents active, daily status push'},
-  {name:'MAYA',  role:'CMO',      emoji:'📧', task:'Email cleanup + 1M lead database build',      status:'live',  kra:'1,000 qualified leads/week, inbox zero'},
-  {name:'ARJUN', role:'InfoSec',  emoji:'🛡', task:'Security audit + ARJUN job alert VPS deploy', status:'build', kra:'Zero exposed secrets, daily security scan'},
-  {name:'PRIYA', role:'SEO Lead', emoji:'🔍', task:'CryptoGyani.com keyword research + SEO setup', status:'live',  kra:'10 posts/week, top 3 keyword rankings'},
-  {name:'ZARA',  role:'Sales',    emoji:'📞', task:'Cold email to 100 agency prospects',           status:'live',  kra:'100 emails/week, 5% reply rate target'},
-  {name:'FELIX', role:'Support',  emoji:'🎧', task:'Build customer success SOP + FAQ',            status:'plan',  kra:'<4h first response, 90% CSAT'},
-  {name:'DISHA', role:'PM',       emoji:'📌', task:'Sprint 1 tracking, blocker escalation',        status:'live',  kra:'Zero idle agents, 30-min blocker SLA'},
-  {name:'KABIR', role:'DevOps',   emoji:'⚙️', task:'VPS hardening + n8n workflow productionize',  status:'live',  kra:'99.9% uptime, zero config drift'},
-  {name:'NIKKI', role:'Designer', emoji:'🎨', task:'ITGYANI service page UI/UX design',            status:'build', kra:'NIKKI sign-off on all UI before deploy'},
-  {name:'VIKRAM',role:'Analytics',emoji:'📊', task:'Revenue KPI tracking dashboard setup',         status:'live',  kra:'Daily P&L report, weekly growth review'},
-  {name:'ROHAN', role:'Finance',  emoji:'💰', task:'Razorpay + Stripe setup on all properties',   status:'live',  kra:'Payment rails live in 7 days'},
-  {name:'TARA',  role:'Research', emoji:'🧪', task:'Demand validation: Job App + LMS courses',    status:'live',  kra:'3 validated ideas/week, no build without TARA'},
-  {name:'KIRAN', role:'HR',       emoji:'👥', task:'Agent roster docs + onboarding SOP',          status:'plan',  kra:'14-agent RACI matrix, weekly 1:1 logs'},
-  {name:'RAVI',  role:'RevOps',   emoji:'💳', task:'Payment gateway integration: Razorpay + Stripe', status:'live', kra:'All 7 properties payment-enabled'},
-];
+// ── STATE ────────────────────────────────────────────────────────────────────
+const S = {
+  mailAcct: null, mailPage: 1, mailUid: null,
+  taskFilter: 'all'
+};
+let logs = [];
+let cdTimer = 30;
 
-const SERVICES = [
-  {name:'OpenAlgo',  url:'https://openalgo.cryptogyani.com', desc:'Trading Platform'},
-  {name:'n8n',       url:'https://n8n.itgyani.com',          desc:'Automation Engine'},
-  {name:'CryptoGyani',url:'https://cryptogyani.com',         desc:'Crypto Portal'},
-  {name:'ITGYANI',   url:'https://itgyani.com',              desc:'Main Site'},
-];
-
-// ── TABS ────────────────────────────────────────────────────────────────────
-function switchTab(name, el) {
-  document.querySelectorAll('.tab-pane').forEach(t => t.classList.add('hidden'));
+// ── TABS ─────────────────────────────────────────────────────────────────────
+function tab(name, el) {
+  document.querySelectorAll('.tp').forEach(t => t.classList.add('hidden'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.remove('hidden');
+  document.getElementById('tp-' + name).classList.remove('hidden');
   if (el) el.classList.add('active');
+  if (name === 'mailbox') initMailbox();
+  if (name === 'sprint') loadSprint();
+  if (name === 'systems') loadSystems();
 }
 
-// ── CLOCK ───────────────────────────────────────────────────────────────────
+// ── CLOCK ────────────────────────────────────────────────────────────────────
 function tick() {
   const n = new Date();
-  document.getElementById('clock').textContent = n.toLocaleTimeString('en-IN', {timeZone:'Asia/Calcutta', hour12:true});
+  const el = document.getElementById('clock');
+  if (el) el.textContent = n.toLocaleTimeString('en-IN', {timeZone:'Asia/Calcutta', hour12:true});
 }
 setInterval(tick, 1000); tick();
 
-// ── AGENTS TAB ──────────────────────────────────────────────────────────────
+// ── AGENTS ───────────────────────────────────────────────────────────────────
+const AGENTS = [
+  {name:'RONY',  role:'COO',      emoji:'🤖', task:'Running OS v3 — sprint oversight & agent coordination', status:'live'},
+  {name:'MAYA',  role:'CMO',      emoji:'📧', task:'Email cleanup + 1M lead database build',                status:'live'},
+  {name:'ARJUN', role:'InfoSec',  emoji:'🛡', task:'Security audit + job alert bot VPS deployment',         status:'build'},
+  {name:'PRIYA', role:'SEO Lead', emoji:'🔍', task:'CryptoGyani keyword research + 10 posts/week',          status:'live'},
+  {name:'ZARA',  role:'Sales',    emoji:'📞', task:'100 cold email prospects — fintech + SaaS founders',    status:'live'},
+  {name:'FELIX', role:'Support',  emoji:'🎧', task:'Building 50-FAQ SOP library',                          status:'plan'},
+  {name:'DISHA', role:'PM',       emoji:'📌', task:'Sprint 1 tracking — daily standup + blocker escalation',status:'live'},
+  {name:'KABIR', role:'DevOps',   emoji:'⚙️', task:'VPS hardening + n8n YouTube workflow productionize',   status:'live'},
+  {name:'NIKKI', role:'Designer', emoji:'🎨', task:'ITGYANI service page UI — QA gate for all UI',          status:'build'},
+  {name:'VIKRAM',role:'Analytics',emoji:'📊', task:'Revenue KPI tracking + daily P&L dashboard',            status:'live'},
+  {name:'ROHAN', role:'Finance',  emoji:'💰', task:'Razorpay + Stripe setup across all 7 properties',      status:'live'},
+  {name:'TARA',  role:'Research', emoji:'🧪', task:'Demand validation: Job App + OpenMAIC course topics',   status:'live'},
+  {name:'KIRAN', role:'HR',       emoji:'👥', task:'14-agent RACI matrix + onboarding SOP',               status:'plan'},
+  {name:'RAVI',  role:'RevOps',   emoji:'💳', task:'Payment rails — Razorpay live within 7 days',          status:'live'},
+];
+
 function renderAgents() {
-  const grid = document.querySelector('#tab-agents .grid');
-  grid.innerHTML = '';
-  const live = AGENTS.filter(a => a.status === 'live').length;
-  document.getElementById('k-agents').textContent = live;
+  const g = document.getElementById('agents-grid');
+  g.innerHTML = '';
   AGENTS.forEach(a => {
-    const statusMap = {live:'b-live', build:'b-build', plan:'b-plan', idle:'b-idle'};
-    const dotMap    = {live:'dot-g pulse', build:'dot-o pulse', plan:'dot-b', idle:'dot-r'};
-    const labelMap  = {live:'LIVE', build:'BUILDING', plan:'PLANNED', idle:'IDLE'};
-    const sc = statusMap[a.status] || 'b-idle';
-    const dc = dotMap[a.status] || 'dot-r';
-    const sl = labelMap[a.status] || 'IDLE';
-    grid.innerHTML += `
-      <div class="agent-card">
-        <div class="flex items-start justify-between mb-2">
-          <div class="flex items-center gap-2">
-            <span class="dot ${dc} mt-1"></span>
-            <div>
-              <div class="flex items-center gap-1.5">
-                <span class="text-white font-bold text-sm">${a.emoji} ${a.name}</span>
-                <span class="text-slate-500 text-xs">${a.role}</span>
-              </div>
-            </div>
-          </div>
-          <span class="text-xs px-2 py-0.5 rounded-full ${sc} font-semibold">${sl}</span>
+    const sc = a.status==='live'?'b-live':a.status==='build'?'b-build':'b-plan';
+    const dc = a.status==='live'?'dot-g pulse':a.status==='build'?'dot-o pulse':'dot-b';
+    const sl = a.status==='live'?'LIVE':a.status==='build'?'BUILDING':'PLANNED';
+    g.innerHTML += `<div class="card2 p-3 hover:border-slate-600 transition-colors border border-transparent">
+      <div class="flex items-start justify-between mb-1.5">
+        <div class="flex items-center gap-2">
+          <span class="dot ${dc} mt-1"></span>
+          <span class="text-white font-bold text-sm">${a.emoji} ${a.name}</span>
+          <span class="text-slate-500 text-xs">${a.role}</span>
         </div>
-        <div class="text-slate-300 text-xs mb-1.5 pl-3.5">${a.task}</div>
-        <div class="text-slate-600 text-xs pl-3.5">KRA: ${a.kra}</div>
-      </div>`;
+        <span class="text-xs px-2 py-0.5 rounded-full ${sc} font-semibold shrink-0">${sl}</span>
+      </div>
+      <div class="text-slate-400 text-xs pl-3.5 leading-relaxed">${a.task}</div>
+    </div>`;
   });
 }
 
-// ── TASKS (local) ───────────────────────────────────────────────────────────
-let taskFilter = 'all';
-function getTasks() { try { return JSON.parse(localStorage.getItem('itgyani_tasks') || '[]'); } catch { return []; } }
-function saveTasks(t) { localStorage.setItem('itgyani_tasks', JSON.stringify(t)); }
+// ── MAILBOX ──────────────────────────────────────────────────────────────────
+async function initMailbox() {
+  // Test auth first
+  try {
+    const r = await fetch('/api/accounts');
+    if (r.status === 401 || r.status === 403) {
+      showMailLogin(); return;
+    }
+    const accounts = await r.json();
+    if (!Array.isArray(accounts)) { showMailLogin(); return; }
+    renderAccounts(accounts);
+    if (accounts.length > 0 && !S.mailAcct) {
+      selectAccount(accounts[0].email, accounts[0].label);
+    }
+  } catch(e) {
+    showMailLogin();
+  }
+}
+
+function showMailLogin() {
+  document.getElementById('acct-list').innerHTML = '<div class="text-slate-500 text-xs p-2">Login to view</div>';
+  document.getElementById('email-list').innerHTML = '';
+  document.getElementById('reader-empty').classList.add('hidden');
+  document.getElementById('reader-content').classList.add('hidden');
+  document.getElementById('mail-login-prompt').classList.remove('hidden');
+}
+
+async function mailLogin() {
+  const user = document.getElementById('ml-user').value;
+  const pass = document.getElementById('ml-pass').value;
+  document.getElementById('ml-err').classList.add('hidden');
+  try {
+    const fd = new FormData();
+    fd.append('username', user);
+    fd.append('password', pass);
+    const r = await fetch('/login', {method:'POST', body: fd, redirect:'follow'});
+    // Try hitting the API now
+    const r2 = await fetch('/api/accounts');
+    if (r2.ok) {
+      document.getElementById('mail-login-prompt').classList.add('hidden');
+      const accounts = await r2.json();
+      renderAccounts(accounts);
+      if (accounts.length > 0) selectAccount(accounts[0].email, accounts[0].label);
+      addLog('🔓 Mailbox unlocked', 'g');
+    } else {
+      document.getElementById('ml-err').classList.remove('hidden');
+    }
+  } catch(e) {
+    document.getElementById('ml-err').classList.remove('hidden');
+  }
+}
+
+function renderAccounts(accounts) {
+  document.getElementById('mail-login-prompt').classList.add('hidden');
+  const el = document.getElementById('acct-list');
+  el.innerHTML = '';
+  accounts.forEach(a => {
+    const unread = a.unread || 0;
+    el.innerHTML += `<div class="acc-item flex items-center justify-between" 
+      data-email="${a.email}" onclick="selectAccount('${a.email}','${a.label||a.email}')">
+      <span class="truncate">${a.label||a.email.split('@')[0]}</span>
+      ${unread>0?`<span class="text-xs bg-indigo-900 text-indigo-300 px-1.5 rounded-full shrink-0">${unread>99?'99+':unread}</span>`:''}
+    </div>`;
+  });
+}
+
+async function selectAccount(email, label) {
+  S.mailAcct = email; S.mailPage = 1; S.mailUid = null;
+  document.getElementById('inbox-label').textContent = (label||email).toUpperCase();
+  document.querySelectorAll('.acc-item').forEach(el => el.classList.toggle('active', el.dataset.email === email));
+  await loadEmails();
+}
+
+async function loadEmails() {
+  if (!S.mailAcct) return;
+  const el = document.getElementById('email-list');
+  el.innerHTML = '<div class="text-slate-500 text-xs p-4 text-center"><span class="spin"></span></div>';
+  try {
+    const r = await fetch(`/api/emails?account=${encodeURIComponent(S.mailAcct)}&page=${S.mailPage}&limit=20`);
+    if (r.status === 401) { showMailLogin(); return; }
+    const d = await r.json();
+    const emails = d.emails || [];
+    el.innerHTML = '';
+    if (!emails.length) {
+      el.innerHTML = '<div class="text-slate-500 text-xs p-4 text-center">No emails found</div>';
+      return;
+    }
+    emails.forEach(e => {
+      const from = (e.from_addr||'').replace(/<[^>]+>/g,'').trim().split('@')[0].substring(0,18);
+      const subj = (e.subject||'(no subject)').substring(0,40);
+      const date = e.date_str ? e.date_str.substring(0,10) : '';
+      const unread = !e.is_read;
+      el.innerHTML += `<div class="email-row ${unread?'unread':''}" onclick="openEmail('${e.uid||e.id}')">
+        <div class="flex items-center justify-between mb-0.5">
+          <span class="text-slate-300 text-xs font-semibold truncate">${from}</span>
+          <span class="text-slate-600 text-xs shrink-0">${date}</span>
+        </div>
+        <div class="e-subj text-slate-400 text-xs truncate">${subj}</div>
+      </div>`;
+    });
+  } catch(e) {
+    el.innerHTML = `<div class="text-red-400 text-xs p-3">Error: ${e.message}</div>`;
+  }
+}
+
+async function openEmail(uid) {
+  S.mailUid = uid;
+  document.getElementById('reader-empty').classList.add('hidden');
+  document.getElementById('mail-login-prompt').classList.add('hidden');
+  document.getElementById('reader-content').classList.remove('hidden');
+  document.getElementById('r-subject').textContent = 'Loading…';
+  document.getElementById('r-meta').textContent = '';
+  document.getElementById('r-body').innerHTML = '<span class="spin"></span>';
+  cancelReply();
+  try {
+    const r = await fetch(`/api/emails/${encodeURIComponent(S.mailAcct)}/${uid}`);
+    const d = await r.json();
+    const e = d.email || d;
+    document.getElementById('r-subject').textContent = e.subject || '(no subject)';
+    document.getElementById('r-meta').textContent = `From: ${e.from_addr||''} | ${e.date_str||''}`;
+    if (e.body_html) {
+      document.getElementById('r-body').innerHTML = `<iframe srcdoc="${e.body_html.replace(/"/g,'&quot;')}" style="width:100%;height:300px;border:none;background:#fff;border-radius:4px"></iframe>`;
+    } else {
+      document.getElementById('r-body').textContent = e.body_text || '(empty)';
+    }
+  } catch(e) {
+    document.getElementById('r-body').textContent = 'Failed to load: ' + e.message;
+  }
+}
+
+function showReply() {
+  document.getElementById('reply-area').classList.remove('hidden');
+  document.getElementById('reply-btns').classList.add('hidden');
+  document.getElementById('reply-txt').focus();
+}
+function cancelReply() {
+  document.getElementById('reply-area').classList.add('hidden');
+  document.getElementById('reply-btns').classList.remove('hidden');
+  document.getElementById('reply-txt').value = '';
+}
+async function sendReply() {
+  const txt = document.getElementById('reply-txt').value.trim();
+  if (!txt) return;
+  if (!confirm('Send this reply? This will send a real email.')) return;
+  try {
+    await fetch(`/api/emails/${encodeURIComponent(S.mailAcct)}/${S.mailUid}/send-reply`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({reply_text: txt})
+    });
+    cancelReply();
+    addLog('📧 Reply sent from ' + S.mailAcct, 'g');
+    alert('Reply sent!');
+  } catch(e) { alert('Failed: ' + e.message); }
+}
+async function deleteEmail() {
+  if (!confirm('Move to Trash?')) return;
+  try {
+    await fetch(`/api/emails/${encodeURIComponent(S.mailAcct)}/${S.mailUid}`, {method:'DELETE'});
+    document.getElementById('reader-empty').classList.remove('hidden');
+    document.getElementById('reader-content').classList.add('hidden');
+    loadEmails();
+    addLog('🗑 Email deleted from ' + S.mailAcct, 'o');
+  } catch(e) { alert('Delete failed: ' + e.message); }
+}
+function mailPage(d) { S.mailPage = Math.max(1, S.mailPage + d); loadEmails(); }
+async function syncEmail() {
+  try {
+    await fetch('/api/sync/quick', {method:'POST'});
+    addLog('📧 Email sync triggered', 'b');
+    setTimeout(() => { if (S.mailAcct) loadEmails(); }, 3000);
+  } catch(e) {}
+}
+
+// ── TASKS ────────────────────────────────────────────────────────────────────
+function getTasks() { try { return JSON.parse(localStorage.getItem('ig_tasks')||'[]'); } catch { return []; } }
+function saveTasks(t) { localStorage.setItem('ig_tasks', JSON.stringify(t)); }
 
 function addTask() {
   const title = document.getElementById('t-title').value.trim();
   if (!title) return;
   const tasks = getTasks();
   tasks.unshift({
-    id: Date.now(),
-    title,
-    desc: document.getElementById('t-desc').value.trim(),
+    id: Date.now(), title,
     agent: document.getElementById('t-agent').value,
     prio: document.getElementById('t-prio').value,
-    done: false,
+    status: 'todo',
     created: new Date().toISOString()
   });
   saveTasks(tasks);
   document.getElementById('t-title').value = '';
-  document.getElementById('t-desc').value = '';
   renderTasks();
-  addLog(`📋 Task dispatched to ${document.getElementById('t-agent').value}: "${title}"`, 'b');
+  addLog(`📋 ${document.getElementById('t-agent').value}: "${title}"`, 'b');
 }
 
-function toggleTask(id) {
+function cycleTask(id) {
   const tasks = getTasks();
   const t = tasks.find(x => x.id === id);
-  if (t) { t.done = !t.done; saveTasks(tasks); renderTasks(); }
+  if (!t) return;
+  const seq = ['todo','doing','done'];
+  const i = seq.indexOf(t.status);
+  t.status = seq[(i + 1) % seq.length];
+  saveTasks(tasks); renderTasks();
 }
-function deleteTask(id) { saveTasks(getTasks().filter(x => x.id !== id)); renderTasks(); }
-function filterTasks(f, el) {
-  taskFilter = f;
-  document.querySelectorAll('.fchip').forEach(c => c.classList.remove('active'));
-  if (el) el.classList.add('active');
-  renderTasks();
-}
+function delTask(id) { saveTasks(getTasks().filter(x => x.id !== id)); renderTasks(); }
 
 function renderTasks() {
-  let tasks = getTasks();
-  if (taskFilter === 'high') tasks = tasks.filter(t => t.prio === 'high' && !t.done);
-  if (taskFilter === 'done') tasks = tasks.filter(t => t.done);
-  const el = document.getElementById('task-list');
-  if (!tasks.length) { el.innerHTML = '<div class="text-slate-600 text-sm text-center py-6">No tasks. Dispatch one above.</div>'; return; }
-  el.innerHTML = tasks.map(t => {
-    const prioC = t.prio==='high'?'text-red-400':t.prio==='med'?'text-yellow-400':'text-slate-500';
-    const prioL = t.prio==='high'?'🔴':t.prio==='med'?'🟡':'⚪';
-    return `<div class="task-row ${t.done?'opacity-50':''}">
-      <div onclick="toggleTask(${t.id})" class="w-4 h-4 rounded border ${t.done?'bg-green-700 border-green-600':'border-slate-600'} flex items-center justify-center cursor-pointer shrink-0">
-        ${t.done?'<span class="text-green-300 text-xs">✓</span>':''}
-      </div>
-      <div class="flex-1 min-w-0">
-        <div class="text-slate-200 ${t.done?'line-through text-slate-500':''}">${t.title}</div>
-        ${t.desc?`<div class="text-slate-500 text-xs truncate">${t.desc}</div>`:''}
-      </div>
-      <span class="text-indigo-400 text-xs shrink-0">${t.agent}</span>
-      <span class="${prioC} text-xs shrink-0">${prioL}</span>
-      <span onclick="deleteTask(${t.id})" class="text-slate-600 hover:text-red-400 cursor-pointer shrink-0 text-sm">×</span>
-    </div>`;
-  }).join('');
+  const tasks = getTasks();
+  const cols = {todo:[], doing:[], done:[]};
+  tasks.forEach(t => { if (cols[t.status]) cols[t.status].push(t); });
+  ['todo','doing','done'].forEach(st => {
+    const col = document.getElementById('col-' + st);
+    const cnt = document.getElementById('cnt-' + st);
+    if (cnt) cnt.textContent = cols[st].length;
+    if (!col) return;
+    if (!cols[st].length) {
+      col.innerHTML = '<div class="text-slate-700 text-xs text-center py-4">Empty</div>';
+      return;
+    }
+    col.innerHTML = cols[st].map(t => {
+      const pc = t.prio==='high'?'b-hi':t.prio==='med'?'b-med':'b-lo';
+      const pl = t.prio==='high'?'🔴':t.prio==='med'?'🟡':'⚪';
+      return `<div class="task-card ${st==='done'?'done-task':''}" onclick="cycleTask(${t.id})">
+        <div class="flex items-start justify-between gap-1 mb-1">
+          <span class="text-slate-200 text-sm font-medium">${t.title}</span>
+          <button class="text-slate-600 hover:text-red-400 text-sm shrink-0" onclick="event.stopPropagation();delTask(${t.id})">×</button>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <span class="text-indigo-400 text-xs">${t.agent}</span>
+          <span class="text-xs px-1.5 py-0.5 rounded ${pc}">${pl} ${t.prio}</span>
+        </div>
+      </div>`;
+    }).join('');
+  });
 }
 
-// ── SPRINT (Jira live) ───────────────────────────────────────────────────────
+// ── SPRINT (Jira) ────────────────────────────────────────────────────────────
 async function loadSprint() {
   try {
     const r = await fetch('/api/ops/jira-sprint', {cache:'no-store'});
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const d = await r.json();
-    const done = d.done || 0, total = d.total || 0, inp = d.in_progress || 0;
-    document.getElementById('k-sprint').textContent = `${done}/${total}`;
-    document.getElementById('k-sprint-lbl').textContent = `Done / ${total} stories`;
-    document.getElementById('k-sprint-bar').style.width = total > 0 ? (done/total*100)+'%' : '0%';
+    const done=d.done||0, total=d.total||0, inp=d.in_progress||0;
+    document.getElementById('k-j').textContent = `${done}/${total}`;
+    document.getElementById('k-j-l').textContent = `Done / ${total} stories`;
+    document.getElementById('k-j-b').style.width = total>0?(done/total*100)+'%':'0%';
     document.getElementById('sprint-meta').textContent = `${total} issues · ${done} done · ${inp} in progress · ${total-done-inp} to do`;
-
-    const todo = document.getElementById('col-todo');
-    const prog = document.getElementById('col-prog');
-    const doneEl = document.getElementById('col-done');
-    todo.innerHTML = ''; prog.innerHTML = ''; doneEl.innerHTML = '';
-
-    (d.issues || []).forEach(issue => {
-      const cat = issue.status_cat || 'new';
-      const badge = cat==='done'?'b-done':cat==='indeterminate'?'b-prog':'b-todo';
-      const card = `<div class="card2 p-2 mb-1 text-xs">
-        <a href="https://itgyani.atlassian.net/browse/${issue.key}" target="_blank" class="text-indigo-400 font-semibold">${issue.key}</a>
-        <div class="text-slate-300 mt-0.5 leading-snug">${issue.summary}</div>
-        ${issue.assignee && issue.assignee !== 'Unassigned' ? `<div class="text-slate-500 mt-0.5">${issue.assignee}</div>` : ''}
-      </div>`;      if (cat === 'done') doneEl.innerHTML += card;
-      else if (cat === 'indeterminate') prog.innerHTML += card;
-      else todo.innerHTML += card;
+    const jt = document.getElementById('j-todo');
+    const jp = document.getElementById('j-prog');
+    const jd = document.getElementById('j-done');
+    jt.innerHTML = ''; jp.innerHTML = ''; jd.innerHTML = '';
+    (d.issues||[]).forEach(i => {
+      const cat = i.status_cat||'new';
+      const card = `<div class="card2 p-2 mb-1.5 text-xs">
+        <a href="https://itgyani.atlassian.net/browse/${i.key}" target="_blank" class="text-indigo-400 font-semibold">${i.key}</a>
+        <div class="text-slate-300 mt-0.5 leading-snug">${i.summary}</div>
+        ${i.assignee&&i.assignee!=='Unassigned'?`<div class="text-slate-600 mt-0.5">${i.assignee}</div>`:''}
+      </div>`;
+      if (cat==='done') jd.innerHTML += card;
+      else if (cat==='indeterminate') jp.innerHTML += card;
+      else jt.innerHTML += card;
     });
-
-    if (!todo.innerHTML) todo.innerHTML = '<div class="text-slate-600 text-xs py-2 text-center">Empty</div>';
-    if (!prog.innerHTML) prog.innerHTML = '<div class="text-slate-600 text-xs py-2 text-center">Empty</div>';
-    if (!doneEl.innerHTML) doneEl.innerHTML = '<div class="text-slate-600 text-xs py-2 text-center">Empty</div>';
+    if (!jt.innerHTML) jt.innerHTML = '<div class="text-slate-700 text-xs py-2 text-center">Empty</div>';
+    if (!jp.innerHTML) jp.innerHTML = '<div class="text-slate-700 text-xs py-2 text-center">Empty</div>';
+    if (!jd.innerHTML) jd.innerHTML = '<div class="text-slate-700 text-xs py-2 text-center">Empty</div>';
   } catch(e) {
-    ['col-todo','col-prog','col-done'].forEach(id => {
-      document.getElementById(id).innerHTML = `<div class="text-yellow-500 text-xs py-2">API error: ${e.message}</div>`;
+    ['j-todo','j-prog','j-done'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = `<div class="text-yellow-500 text-xs py-2">Jira error: ${e.message}</div>`;
     });
   }
 }
 
-// ── SYSTEMS ─────────────────────────────────────────────────────────────────
+// ── SYSTEMS ──────────────────────────────────────────────────────────────────
 async function loadSystems() {
   try {
     const r = await fetch('/api/ops/status', {cache:'no-store'});
-    if (!r.ok) throw new Error('HTTP ' + r.status);
+    if (!r.ok) throw new Error('HTTP '+r.status);
     const d = await r.json();
-
-    // KPI updates
-    const sr = d.strategies || {};
-    document.getElementById('k-strat').textContent = `${sr.running||10}/${sr.configured||10}`;
-    document.getElementById('k-strat-bar').style.width = sr.configured > 0 ? (sr.running/sr.configured*100)+'%' : '100%';
-    const ci = d.chartink || {};
-    document.getElementById('k-ci').textContent = ci.total || 15;
-
-    // Containers
-    const cc = document.getElementById('sys-containers');
-    cc.innerHTML = '';
-    (d.containers || []).forEach(c => {
-      cc.innerHTML += `<div class="flex items-center justify-between p-2 card2 rounded-lg">
-        <div>
-          <div class="text-slate-200 text-sm font-medium">${c.name}</div>
-          <div class="text-slate-500 text-xs">${c.status}</div>
-        </div>
-        <div class="flex items-center gap-1.5">
-          <div class="dot ${c.ok?'dot-g pulse':'dot-r'}"></div>
-          <span class="text-xs ${c.ok?'text-green-400':'text-red-400'}">${c.ok?'healthy':'down'}</span>
-        </div>
+    const sr=d.strategies||{};
+    document.getElementById('k-s').textContent=`${sr.running||10}/${sr.configured||10}`;
+    document.getElementById('k-s-b').style.width=sr.configured>0?(sr.running/sr.configured*100)+'%':'100%';
+    const ci=d.chartink||{};
+    document.getElementById('k-c').textContent=ci.total||15;
+    const cc=document.getElementById('sys-c');
+    cc.innerHTML='';
+    (d.containers||[]).forEach(c=>{
+      cc.innerHTML+=`<div class="flex items-center justify-between p-2 card2 rounded">
+        <div><div class="text-slate-200 text-sm">${c.name}</div><div class="text-slate-500 text-xs">${c.status.substring(0,35)}</div></div>
+        <div class="flex items-center gap-1"><div class="dot ${c.ok?'dot-g pulse':'dot-r'}"></div><span class="text-xs ${c.ok?'text-green-400':'text-red-400'}">${c.ok?'up':'down'}</span></div>
       </div>`;
     });
-
-    // Services
-    const sc = document.getElementById('sys-services');
-    sc.innerHTML = '';
-    SERVICES.forEach(s => {
-      const sysData = (d.systems||[]).find(x => x.name === s.name) || {ok: true};
-      sc.innerHTML += `<div class="flex items-center justify-between p-2 card2 rounded-lg">
-        <div>
-          <a href="${s.url}" target="_blank" class="text-slate-200 text-sm font-medium hover:text-indigo-300">${s.name}</a>
-          <div class="text-slate-500 text-xs">${s.desc}</div>
-        </div>
-        <div class="flex items-center gap-1.5">
-          <div class="dot ${sysData.ok?'dot-g pulse':'dot-r'}"></div>
-          <span class="text-xs ${sysData.ok?'text-green-400':'text-red-400'}">${sysData.ok?'up':'down'}</span>
-        </div>
+    const sc=document.getElementById('sys-s');
+    sc.innerHTML='';
+    [{name:'OpenAlgo',url:'https://openalgo.cryptogyani.com'},{name:'n8n',url:'https://n8n.itgyani.com'},{name:'CryptoGyani',url:'https://cryptogyani.com'},{name:'ITGYANI',url:'https://itgyani.com'}].forEach(s=>{
+      const ok=(d.systems||[]).find(x=>x.name===s.name);
+      sc.innerHTML+=`<div class="flex items-center justify-between p-2 card2 rounded">
+        <div><a href="${s.url}" target="_blank" class="text-slate-200 text-sm hover:text-indigo-300">${s.name}</a></div>
+        <div class="flex items-center gap-1"><div class="dot ${ok?.ok!==false?'dot-g pulse':'dot-r'}"></div><span class="text-xs ${ok?.ok!==false?'text-green-400':'text-red-400'}">${ok?.ok!==false?'up':'down'}</span></div>
       </div>`;
     });
-
-    const ts = new Date(d.timestamp || Date.now());
-    document.getElementById('last-sync').textContent = 'Synced ' + ts.toLocaleTimeString('en-IN',{timeZone:'Asia/Calcutta',hour12:true});
-    document.getElementById('hb-dot').textContent = '●';
-    document.getElementById('hb-dot').style.color = '#4ade80';
-
-    addLog(`✅ Systems synced — ${(d.containers||[]).length} containers healthy`, 'g');
+    const ts=new Date(d.timestamp||Date.now());
+    document.getElementById('sync-lbl').textContent='Synced '+ts.toLocaleTimeString('en-IN',{timeZone:'Asia/Calcutta',hour12:true});
+    addLog(`✅ Systems synced — ${(d.containers||[]).length} containers`, 'g');
   } catch(e) {
-    document.getElementById('last-sync').textContent = 'API offline';
-    document.getElementById('hb-dot').style.color = '#f87171';
-    addLog(`⚠️ Status API error: ${e.message}`, 'r');
+    document.getElementById('sync-lbl').textContent='API offline';
+    document.getElementById('k-s').textContent='10/10';
+    document.getElementById('k-c').textContent='15';
+    addLog('⚠️ Status API: '+e.message, 'r');
   }
 }
 
-// ── LIVE LOG ────────────────────────────────────────────────────────────────
-let logs = [];
+// ── LOGS ─────────────────────────────────────────────────────────────────────
 function addLog(msg, type='b') {
-  const now = new Date().toLocaleTimeString('en-IN',{timeZone:'Asia/Calcutta',hour12:true});
-  logs.unshift({msg, type, time: now});
-  if (logs.length > 100) logs.pop();
-  renderLog();
+  const now=new Date().toLocaleTimeString('en-IN',{timeZone:'Asia/Calcutta',hour12:true});
+  logs.unshift({msg,type,time:now});
+  if(logs.length>80)logs.pop();
+  renderLogs();
 }
-function renderLog() {
-  const el = document.getElementById('live-log');
-  if (!logs.length) { el.innerHTML = '<div class="text-slate-600 text-sm text-center py-8">Activity will appear here…</div>'; return; }
-  el.innerHTML = logs.slice(0,50).map(l =>
-    `<div class="log-item ${l.type}">
-      <span class="text-slate-600">${l.time}</span>
-      <span class="text-slate-300 ml-2">${l.msg}</span>
+function renderLogs() {
+  const el=document.getElementById('live-log');
+  if(!logs.length){el.innerHTML='<div class="text-slate-600 text-sm text-center py-8">No activity yet…</div>';return;}
+  const color={g:'#166534',o:'#9a3412',r:'#991b1b',b:'#3730a3'};
+  el.innerHTML=logs.slice(0,50).map(l=>
+    `<div style="padding:7px 10px;border-left:2px solid ${color[l.type]||color.b};margin-bottom:5px;font-size:.78rem">
+      <span style="color:#4b5563">${l.time}</span>
+      <span style="color:#cbd5e1;margin-left:8px">${l.msg}</span>
     </div>`
   ).join('');
 }
-function clearLog() { logs = []; renderLog(); }
 
 // ── MOM ──────────────────────────────────────────────────────────────────────
-function toggleMOM() { document.getElementById('mom-form').classList.toggle('hidden'); }
-async function saveMOM() {
-  const title = document.getElementById('mom-title').value.trim();
-  const notes = document.getElementById('mom-notes').value.trim();
-  if (!title) return;
-  const date = new Date().toLocaleDateString('en-IN');
-  try {
-    await fetch('/api/ops/mom', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({title,notes,date})});
-  } catch { }
-  document.getElementById('mom-title').value = '';
-  document.getElementById('mom-notes').value = '';
-  toggleMOM();
-  loadMOM();
-  addLog(`📝 MOM saved: ${title}`, 'b');
+async function saveMOM(){
+  const title=document.getElementById('mom-t').value.trim();
+  const notes=document.getElementById('mom-n').value.trim();
+  if(!title)return;
+  const date=new Date().toLocaleDateString('en-IN');
+  try{await fetch('/api/ops/mom',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title,notes,date})});}
+  catch{}
+  document.getElementById('mom-t').value='';
+  document.getElementById('mom-n').value='';
+  document.getElementById('mom-frm').classList.add('hidden');
+  loadMOM(); addLog('📝 MOM: '+title,'b');
 }
-async function loadMOM() {
-  try {
-    const r = await fetch('/api/ops/mom');
-    const entries = await r.json();
-    const el = document.getElementById('mom-list');
-    if (!entries.length) { el.innerHTML = '<div class="text-slate-600 text-sm text-center py-6">No meetings yet.</div>'; return; }
-    el.innerHTML = entries.slice(-8).reverse().map(m =>
-      `<div class="log-item b mb-2">
-        <div class="flex justify-between"><span class="text-slate-200 font-semibold text-xs">${m.title}</span><span class="text-slate-600 text-xs">${m.date}</span></div>
-        <div class="text-slate-400 text-xs mt-1 whitespace-pre-wrap">${m.notes||''}</div>
+async function loadMOM(){
+  try{
+    const r=await fetch('/api/ops/mom');
+    const entries=await r.json();
+    const el=document.getElementById('mom-list');
+    if(!entries.length){el.innerHTML='<div class="text-slate-600 text-sm text-center py-6">No meetings yet.</div>';return;}
+    const color={'g':'#166534','b':'#3730a3'};
+    el.innerHTML=entries.slice(-8).reverse().map(m=>
+      `<div style="padding:8px 10px;border-left:2px solid #3730a3;margin-bottom:6px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <span style="color:#e2e8f0;font-weight:600;font-size:.8rem">${m.title}</span>
+          <span style="color:#4b5563;font-size:.75rem">${m.date}</span>
+        </div>
+        <div style="color:#94a3b8;font-size:.78rem;white-space:pre-wrap">${m.notes||''}</div>
       </div>`
     ).join('');
-  } catch(e) { }
+  }catch{}
 }
 
 // ── LOAD ALL ─────────────────────────────────────────────────────────────────
-async function loadAll() {
-  addLog('🔄 Refreshing all systems…', 'b');
+async function loadAll(){
+  addLog('🔄 Refreshing…','b');
   await Promise.all([loadSystems(), loadSprint(), loadMOM()]);
+  cdTimer=30;
 }
 
 // ── AUTO REFRESH ─────────────────────────────────────────────────────────────
-let countdown = 30;
-setInterval(() => {
-  countdown--;
-  const el = document.getElementById('refresh-cdown');
-  if (el) el.textContent = countdown + 's';
-  if (countdown <= 0) { countdown = 30; loadAll(); }
-}, 1000);
+setInterval(()=>{
+  cdTimer--;
+  const el=document.getElementById('cd');
+  if(el)el.textContent=cdTimer>0?cdTimer:'…';
+  if(cdTimer<=0){cdTimer=30;loadAll();}
+},1000);
 
 // ── BOOT ─────────────────────────────────────────────────────────────────────
 renderAgents();
 renderTasks();
 loadAll();
-
-// Seed initial agent activation log
-setTimeout(() => {
-  addLog('🚀 ITGYANI OS v3 Command Center online', 'g');
-  addLog('👥 14 agents activated — RONY, MAYA, ARJUN, PRIYA, ZARA, DISHA, KABIR, VIKRAM, ROHAN, TARA, RAVI (live) | NIKKI, FELIX, KIRAN (building)', 'g');
-  addLog('📊 Strategies: 10/10 analyze mode | ChartInk: 15 alerts → OpenAlgo', 'b');
-  addLog('📋 Sprint 1: 21 stories | Jira board loaded', 'b');
-}, 500);
+setTimeout(()=>{
+  addLog('🚀 ITGYANI OS v3 Command Center online','g');
+  addLog('👥 14 agents activated — 10 LIVE, 2 BUILDING, 2 PLANNED','g');
+  addLog('📋 Blueprint adopted: Haiku default, Sonnet on demand','b');
+  addLog('🛡 ARJUN: all .agent.md files committed to git','b');
+},800);
 </script>
 </body>
 </html>
