@@ -192,6 +192,7 @@ input,textarea,select{background:#0b0f1a;border:1px solid #1f2937;border-radius:
   </div>
 </div>
 <div id="tp-sprint" class="tp hidden">
+<span id="jira-last-updated">Last updated: 0s ago</span>
   <div class="card p-4">
     <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
       <div><div class="text-white font-semibold">Sprint 1 - Week1 Foundation</div><div id="sprint-meta" style="color:#6b7280;font-size:.78rem">Loading from Jira...</div></div>
@@ -547,6 +548,42 @@ setTimeout(function(){
   addLog('14 agents: 10 LIVE / 2 BUILDING / 2 PLANNED','g');
   addLog('8 projects | Jira linked | 15-min auto-refresh','b');
 },800);
+</script>
+
+<!-- KABIR: Jira 60s real-time refresh + last-updated counter -->
+<style>
+#jira-last-updated { font-size: 11px; color: #999; margin-left: 8px; font-style: italic; }
+</style>
+<script>
+(function jiraRealtime() {
+  var _jiraTs = null;
+  function _updateJiraTimer() {
+    var el = document.getElementById('jira-last-updated');
+    if (el && _jiraTs) {
+      var s = Math.floor((Date.now() - _jiraTs) / 1000);
+      el.textContent = 'Last updated: ' + s + 's ago';
+    }
+  }
+  function _fetchJira() {
+    fetch('/api/ops/jira-sprint')
+      .then(function(r){return r.json();})
+      .then(function(d){
+        _jiraTs = Date.now();
+        var map = {total:'jira-total',done:'jira-done',in_progress:'jira-inprogress',todo:'jira-todo'};
+        Object.keys(map).forEach(function(k){
+          var el=document.getElementById(map[k]);
+          if(el && d[k]!==undefined) el.textContent=d[k];
+        });
+        _updateJiraTimer();
+      })
+      .catch(function(e){console.warn('Jira poll error',e);});
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    _fetchJira();
+    setInterval(_fetchJira, 60000);
+    setInterval(_updateJiraTimer, 1000);
+  });
+})();
 </script>
 </body>
 </html>

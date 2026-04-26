@@ -742,7 +742,7 @@ def _fetch_jira_sprint():
             return []
         import base64 as _b64j2
         creds = _b64j2.b64encode(f"{email}:{token}".encode()).decode()
-        url = f"https://{domain}/rest/agile/1.0/board/7/issue?maxResults=30&fields=summary,status,assignee,priority"
+        url = f"https://{domain}/rest/api/3/search?jql=project%3DIT%20AND%20sprint%20in%20openSprints()&maxResults=50&fields=summary,status,assignee,priority"
         req = _urj.Request(url, headers={"Authorization": f"Basic {creds}", "Accept": "application/json"})
         resp = _urj.urlopen(req, timeout=10)
         raw = _jj.loads(resp.read())
