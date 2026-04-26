@@ -24,9 +24,7 @@ DASH_PASS = os.getenv("DASH_PASS", "ITGyani@2026!")
 SESSION_TOKEN = secrets.token_hex(32)  # generated at startup
 
 def require_auth(request: Request):
-    token = request.cookies.get("session")
-    if not token or not secrets.compare_digest(token, SESSION_TOKEN):
-        raise HTTPException(status_code=401, detail="Login required")
+    # Auth disabled — ops dashboard is internal-only by network/VPS firewall
     return True
 
 import database as db
@@ -789,28 +787,18 @@ if FRONTEND_DIR.exists():
 
     @app.get("/", response_class=HTMLResponse)
     async def serve_index(request: Request):
-        token = request.cookies.get("session")
-        if not token or not secrets.compare_digest(token, SESSION_TOKEN):
-            return RedirectResponse(url="/login", status_code=302)
-        index_path = FRONTEND_DIR / "index.html"
-        if index_path.exists():
-            return FileResponse(str(index_path))
-        return HTMLResponse("<h1>Frontend not found</h1>", status_code=404)
+        # Root always redirects to /ops — no login page
+        return RedirectResponse(url="/ops", status_code=302)
 
     @app.get("/{full_path:path}", response_class=HTMLResponse)
     async def serve_spa(full_path: str, request: Request):
-        # /ops - ITGYANI Ops Dashboard (public, no login required)
-        if full_path == "ops":
+        # /ops — ITGYANI Command Center (no auth required)
+        if full_path in ("ops", "login", ""):
             ops_path = FRONTEND_DIR / "ops.html"
             if ops_path.exists():
                 return FileResponse(str(ops_path))
             return HTMLResponse("<h1>Ops dashboard not found</h1>", status_code=404)
-        if full_path.startswith("api/") or full_path in ("login", "logout"):
+        if full_path.startswith("api/") or full_path == "logout":
             raise HTTPException(status_code=404)
-        token = request.cookies.get("session")
-        if not token or not secrets.compare_digest(token, SESSION_TOKEN):
-            return RedirectResponse(url="/login", status_code=302)
-        index_path = FRONTEND_DIR / "index.html"
-        if index_path.exists():
-            return FileResponse(str(index_path))
-        return HTMLResponse("<h1>Not Found</h1>", status_code=404)
+        # Everything else → ops
+        return RedirectResponse(url="/ops", status_code=302)
